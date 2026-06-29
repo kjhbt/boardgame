@@ -184,6 +184,13 @@ select{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
 .savebar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);
   color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
 .savebar.show{opacity:1}
+.bgg-credit{margin:26px 2px 8px;padding-top:16px;border-top:1px solid var(--line);text-align:center}
+.bgg-credit a{display:inline-flex;align-items:center;gap:7px;color:var(--felt);text-decoration:none;
+  font-size:13px;font-family:"Jua";background:var(--paper);border:1.5px solid var(--line);
+  border-radius:999px;padding:7px 14px;transition:.15s}
+.bgg-credit a:hover{border-color:var(--felt);background:#fff}
+.bgg-credit .bgg-mark{display:inline-flex;color:var(--felt2)}
+.bgg-credit .bgg-note{margin-top:8px;font-size:11.5px;color:var(--muted)}
 
 /* friend rating page + share button */
 .iconbtn.share{color:var(--jh);border-color:#CBD8EA}
@@ -205,6 +212,7 @@ body.rate-mode .hero{padding-bottom:20px}
 .bb{font-size:11px;padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;font-family:"Jua"}
 .bb.weight,.bb.diff{background:#EFE7F4;color:#7A4FA0}
 .bb.players{background:#E7F0F4;color:#2F6E84}
+.bb.time{background:#F1EEE6;color:#7A6E55}
 .bgg-link{font-size:11px;color:#E07A5F;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
 .bgg-tag{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;background:#FFF1E9;color:#c2603f;padding:2px 7px;border-radius:999px}
 .btn.bgg{background:#E8632E;color:#fff}
@@ -253,6 +261,15 @@ body.rate-mode .hero{padding-bottom:20px}
     <button class="tab" data-tab="plays" aria-selected="false">📖 플레이 기록</button>
   </div>
   <div id="view"></div>
+  <footer class="bgg-credit">
+    <a href="https://boardgamegeek.com" target="_blank" rel="noopener" aria-label="Powered by BoardGameGeek">
+      <span class="bgg-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 2 3 7v10l9 5 9-5V7zM12 4.3 18.5 8 12 11.7 5.5 8zM5 9.6l6 3.4v7L5 16.4zm14 0v6.8l-6 3.4v-7z"/></svg>
+      </span>
+      <span>Powered by <b>BGG</b> · BoardGameGeek</span>
+    </a>
+    <div class="bgg-note">게임 정보(표지·인원·시간·난이도·작가)는 BoardGameGeek XML API 제공.</div>
+  </footer>
 </div>
 
 <div class="overlay" id="overlay"></div>
@@ -509,6 +526,7 @@ function renderCollection(){
     const pc=playCountFor(g.name);
     const wt = g.weight!=null? `<span class="bb diff">🎯 난이도 ${Number(g.weight).toFixed(1)}/5</span>`:"";
     const pl = g.players? `<span class="bb players">👥 ${esc(g.players)}</span>`:"";
+    const ti = g.playtime? `<span class="bb time">⏱ ${esc(g.playtime)}</span>`:"";
     const de = g.designers? `<div class="gdesigner">✎ ${esc(g.designers)}</div>`:"";
     return `<div class="gcard ${g.owned?"":"gone"}">
       <div class="corner"></div>
@@ -519,7 +537,7 @@ function renderCollection(){
         ${g.method?`<span class="tag method">${esc(g.method)}</span>`:""}
       </div>
       ${de}
-      ${(wt||pl)?`<div class="bgg-badges">${wt}${pl}</div>`:""}
+      ${(wt||pl||ti)?`<div class="bgg-badges">${wt}${pl}${ti}</div>`:""}
       <div class="price">${won(g.price)}</div>
       <div class="gfoot">
         <div>
@@ -919,6 +937,12 @@ function parseThing(it){
   else if(rec.length) players="추천 "+rec.join(",")+"인";
   else if(mn&&mx) players=mn+"–"+mx+"인";
   const wRaw=val("statistics > ratings > averageweight") || val("averageweight");
+  // 플레이 시간
+  const pt=val("playingtime"), ptMin=val("minplaytime"), ptMax=val("maxplaytime");
+  let playtime="";
+  if(ptMin&&ptMax&&ptMin!==ptMax) playtime=ptMin+"–"+ptMax+"분";
+  else if(pt&&pt!=="0") playtime=pt+"분";
+  else if(ptMax&&ptMax!=="0") playtime=ptMax+"분";
   return {
     id: it.getAttribute("id"),
     name: primary?primary.getAttribute("value"):"",
@@ -929,6 +953,7 @@ function parseThing(it){
     designers: designers.length?designers.join(", "):"",
     pmin: mn?parseInt(mn,10):null,
     pmax: mx?parseInt(mx,10):null,
+    playtime,
     players
   };
 }
@@ -936,6 +961,7 @@ function applyBgg(game, t){
   game.bggId=t.id; game.thumb=t.thumb; game.image=t.image;
   game.weight=t.weight; game.players=t.players; game.bggYear=t.year;
   game.designers=t.designers; game.pmin=t.pmin; game.pmax=t.pmax;
+  game.playtime=t.playtime;
 }
 
 async function bggModal(gid){
@@ -964,7 +990,7 @@ async function bggModal(gid){
         return `<button class="cand" data-pick="${h.id}">
           <img loading="lazy" src="${esc(d.thumb||"")}" alt="">
           <div class="ci"><div class="cn">${esc(d.name||h.name)}</div>
-          <div class="cm">${h.year?h.year+" · ":""}${d.weight?"난이도 "+d.weight.toFixed(1)+" · ":""}${esc(d.players||"")}${d.designers?" · "+esc(d.designers):""}</div></div>
+          <div class="cm">${h.year?h.year+" · ":""}${d.weight?"난이도 "+d.weight.toFixed(1)+" · ":""}${esc(d.players||"")}${d.playtime?" · "+esc(d.playtime):""}${d.designers?" · "+esc(d.designers):""}</div></div>
         </button>`;
       }).join("");
       document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=async()=>{
@@ -976,7 +1002,7 @@ async function bggModal(gid){
   };
   $("#bgg_go").onclick=run;
   $("#bgg_q").onkeydown=e=>{ if(e.key==="Enter") run(); };
-  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","bggYear"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderCollection(); };
+  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","playtime","bggYear"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderCollection(); };
   run();
 }
 
