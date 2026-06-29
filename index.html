@@ -805,36 +805,82 @@ function renderTab(){
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ activeTab=t.dataset.tab; renderTab(); });
 
 /* ---------- BoardGameGeek integration ---------- */
-// BGG has no CORS, so we route through public CORS proxies.
-// corsproxy.io 가 익명 요청을 막아 제외했고, 더 안정적인 프록시들로 교체.
-// 응답이 raw 인 것과 JSON({contents})으로 감싸는 것이 섞여 있어 둘 다 처리한다.
+// ── BGG 연동 ───────────────────────────────────────────────
+// 권장: 본인 전용 Cloudflare Worker 프록시 주소를 BGG_PROXY 에 넣으세요.
+//   예) const BGG_PROXY = "https://bgg-proxy.이름.workers.dev";
+// 비워두면 공개 프록시로 폴백하지만, 공개 프록시는 자주 막혀 불안정합니다.
+// (Worker 코드는 함께 드린 bgg-proxy-worker.js 파일 참고)
+const BGG_PROXY = "https://boardgame.wkdgns1457.workers.dev";
+
+// 공개 프록시(폴백). raw / JSON({contents}) 형식을 모두 처리.
 const PROXIES = [
   { build:u=>"https://api.codetabs.com/v1/proxy/?quest="+encodeURIComponent(u), json:false },
   { build:u=>"https://api.allorigins.win/get?url="+encodeURIComponent(u),       json:true  },
   { build:u=>"https://thingproxy.freeboard.io/fetch/"+u,                        json:false },
   { build:u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),       json:false },
 ];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// 전용 프록시 주소로 BGG URL 경로를 패스스루
+function proxied(bggUrl){
+  const u=new URL(bggUrl);
+  return BGG_PROXY.replace(/\/+$/,"") + u.pathname + u.search;
+}
+function xmlOf(txt){
+  if(!txt || txt.indexOf("<")===-1) return null;
+  const xml=new DOMParser().parseFromString(txt,"text/xml");
+  if(xml.querySelector("parsererror")) return null;
+  return xml;
+}
+
+// 캐싱 + 동일 요청 중복 방지 (명세 8항)
+const BGG_CACHE=new Map(), BGG_INFLIGHT=new Map();
 async function bggFetch(url){
+  if(BGG_CACHE.has(url)) return BGG_CACHE.get(url);
+  if(BGG_INFLIGHT.has(url)) return BGG_INFLIGHT.get(url);
+  const job=(async()=>{
+    const xml = await (BGG_PROXY ? fetchViaWorker(url) : fetchViaPublic(url));
+    BGG_CACHE.set(url, xml);
+    return xml;
+  })();
+  BGG_INFLIGHT.set(url, job);
+  try{ return await job; }
+  finally{ BGG_INFLIGHT.delete(url); }
+}
+// 전용 Worker: 202(대기)는 Worker가 서버에서 재시도하지만, 혹시 몰라 클라이언트도 5회 재시도
+async function fetchViaWorker(url){
+  let lastErr;
+  for(let attempt=0;attempt<5;attempt++){
+    try{
+      const res=await fetch(proxied(url),{headers:{"Accept":"application/xml"}});
+      if(res.status===202){ await sleep(2000); continue; }
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const xml=xmlOf(await res.text());
+      if(!xml){ await sleep(1500); continue; }
+      return xml;
+    }catch(e){ lastErr=e; await sleep(700); }
+  }
+  throw lastErr||new Error("프록시 요청 실패");
+}
+// 공개 프록시 폴백
+async function fetchViaPublic(url){
   let lastErr;
   for(const p of PROXIES){
     for(let attempt=0;attempt<3;attempt++){
       try{
         const res=await fetch(p.build(url),{headers:{"Accept":"*/*"}});
-        if(res.status===202){ await sleep(1500); continue; } // BGG queued, retry
+        if(res.status===202){ await sleep(1500); continue; }
         if(!res.ok) throw new Error("HTTP "+res.status);
         let txt=await res.text();
         if(p.json){ try{ const j=JSON.parse(txt); if(j&&j.contents!=null) txt=j.contents; }catch(e){} }
-        if(!txt || txt.indexOf("<")===-1){ await sleep(1200); continue; } // 빈/대기 응답 → 재시도
-        const xml=new DOMParser().parseFromString(txt,"text/xml");
-        if(xml.querySelector("parsererror")) throw new Error("XML 파싱 실패");
+        const xml=xmlOf(txt);
+        if(!xml){ await sleep(1200); continue; }
         return xml;
       }catch(e){ lastErr=e; await sleep(500); }
     }
   }
   throw lastErr||new Error("요청 실패");
 }
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-
 async function bggSearch(name){
   const xml=await bggFetch("https://boardgamegeek.com/xmlapi2/search?type=boardgame&query="+encodeURIComponent(name));
   return [...xml.querySelectorAll("item")].slice(0,8).map(it=>({
@@ -925,7 +971,7 @@ async function bggModal(gid){
         applyBgg(g, dmap[b.dataset.pick]); await persist(); closeModal(); renderStats(); renderCollection(); toast("BGG 정보 연동 완료");
       });
     }catch(e){
-      $("#bgg_results").innerHTML=`<div class="statemsg">가져오기에 실패했어요. (${esc(e.message)})<br>이 미리보기 화면에서는 외부 연결이 막힐 수 있어요. 파일을 직접 호스팅한 버전에서 시도해 보세요.</div>`;
+      $("#bgg_results").innerHTML=`<div class="statemsg">가져오기에 실패했어요. (${esc(e.message)})<br>공개 프록시가 막혔을 수 있어요. 안정적으로 쓰려면 Cloudflare Worker 프록시 주소를 코드의 <b>BGG_PROXY</b> 에 넣어 주세요. (함께 받은 bgg-proxy-worker.js 참고)</div>`;
     }
   };
   $("#bgg_go").onclick=run;
