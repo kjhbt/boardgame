@@ -805,24 +805,26 @@ function renderTab(){
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ activeTab=t.dataset.tab; renderTab(); });
 
 /* ---------- BoardGameGeek integration ---------- */
-// BGG has no CORS, so we route through a public CORS proxy.
-// These work when the page is hosted normally; inside the claude.ai
-// preview sandbox outbound calls may be blocked — host the file yourself
-// (Netlify Drop / GitHub Pages) for reliable use.
+// BGG has no CORS, so we route through public CORS proxies.
+// corsproxy.io 가 익명 요청을 막아 제외했고, 더 안정적인 프록시들로 교체.
+// 응답이 raw 인 것과 JSON({contents})으로 감싸는 것이 섞여 있어 둘 다 처리한다.
 const PROXIES = [
-  u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),
-  u=>"https://corsproxy.io/?url="+encodeURIComponent(u),
+  { build:u=>"https://api.codetabs.com/v1/proxy/?quest="+encodeURIComponent(u), json:false },
+  { build:u=>"https://api.allorigins.win/get?url="+encodeURIComponent(u),       json:true  },
+  { build:u=>"https://thingproxy.freeboard.io/fetch/"+u,                        json:false },
+  { build:u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),       json:false },
 ];
 async function bggFetch(url){
   let lastErr;
-  for(const wrap of PROXIES){
+  for(const p of PROXIES){
     for(let attempt=0;attempt<3;attempt++){
       try{
-        const res=await fetch(wrap(url));
+        const res=await fetch(p.build(url),{headers:{"Accept":"*/*"}});
         if(res.status===202){ await sleep(1500); continue; } // BGG queued, retry
         if(!res.ok) throw new Error("HTTP "+res.status);
-        const txt=await res.text();
-        if(!txt||txt.indexOf("<")===-1) throw new Error("빈 응답");
+        let txt=await res.text();
+        if(p.json){ try{ const j=JSON.parse(txt); if(j&&j.contents!=null) txt=j.contents; }catch(e){} }
+        if(!txt || txt.indexOf("<")===-1){ await sleep(1200); continue; } // 빈/대기 응답 → 재시도
         const xml=new DOMParser().parseFromString(txt,"text/xml");
         if(xml.querySelector("parsererror")) throw new Error("XML 파싱 실패");
         return xml;
