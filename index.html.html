@@ -1,0 +1,1080 @@
+<!-- BOARDGAME COLLECTION + PLAY LOG -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#21453D; --felt2:#2C594C; --bg:#F2EDE1; --paper:#FBF8F1;
+  --card:#FFFFFF; --ink:#221F19; --muted:#8A8170; --line:#E7DFCF;
+  --jh:#3A6EA5; --ny:#E07A5F; --gold:#CC9A3E; --owned:#4E876A; --gone:#B05C4E;
+  --mint:#AEC9B9; --mint2:#C6D9CC;
+  --shadow:0 1px 2px rgba(34,31,25,.05),0 8px 22px rgba(34,31,25,.07);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Gowun Dodum",system-ui,sans-serif;line-height:1.55;}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px 90px}
+
+/* HEADER / felt table */
+.hero{background:linear-gradient(150deg,var(--felt2) 0%,var(--felt) 70%);
+  color:#F4EFE2;border-radius:0 0 26px 26px;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.12),0 12px 26px rgba(33,69,61,.22);
+  padding:22px 26px 26px;margin-bottom:22px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;opacity:.05;pointer-events:none;
+  background-image:radial-gradient(circle at 18% 30%,#fff 0 .5px,transparent 1.5px),
+   radial-gradient(circle at 66% 72%,#fff 0 .5px,transparent 1.5px);
+  background-size:40px 40px,32px 32px}
+.hero-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px}
+.meeples{display:flex;gap:-8px;align-items:center}
+.meeple{width:32px;height:38px;margin-left:-8px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.22))}
+.meeple:first-child{margin-left:0}
+.spacer{flex:1}
+.tools{display:flex;gap:8px}
+.ghost{background:rgba(255,255,255,.12);color:#F4EFE2;border:1px solid rgba(255,255,255,.25);
+  border-radius:11px;padding:9px 13px;font-size:13px;transition:.15s}
+.ghost:hover{background:rgba(255,255,255,.22)}
+
+.stats{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap}
+.stat{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);
+  border-radius:16px;padding:13px 18px;min-width:120px;backdrop-filter:blur(2px)}
+.stat .n{font-family:"Black Han Sans";font-size:30px;line-height:1;color:#fff}
+.stat .l{font-size:12px;color:var(--mint);margin-top:5px;letter-spacing:.3px}
+
+/* TABS */
+.tabs{display:flex;gap:8px;margin-bottom:18px}
+.tab{flex:0 0 auto;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);
+  font-family:"Jua";font-size:16px;padding:10px 20px;border-radius:13px;transition:.15s}
+.tab[aria-selected=true]{background:var(--ink);color:#FBF8F1;border-color:var(--ink)}
+
+/* CONTROLS */
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.search{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:var(--paper);
+  border:1.5px solid var(--line);border-radius:12px;padding:0 12px}
+.search input{border:0;background:transparent;outline:none;flex:1;padding:11px 0;font:inherit;font-size:14px;color:var(--ink)}
+.search svg{flex:0 0 auto;opacity:.45}
+select{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
+  border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;outline:none}
+.add{background:var(--owned);color:#fff;border:0;border-radius:12px;padding:11px 18px;
+  font-family:"Jua";font-size:15px;box-shadow:0 2px 6px rgba(78,135,106,.35);transition:.12s}
+.add:hover{filter:brightness(1.04)}
+.add:active{transform:translateY(1px);box-shadow:0 1px 3px rgba(78,135,106,.3)}
+.add.alt{background:var(--jh);box-shadow:0 2px 6px rgba(58,110,165,.32)}
+.add.alt:active{box-shadow:0 1px 3px rgba(58,110,165,.28)}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{background:var(--paper);border:1.5px solid var(--line);color:var(--muted);
+  border-radius:999px;padding:7px 14px;font-size:13px;transition:.12s}
+.fchip[aria-pressed=true]{background:var(--felt);color:#fff;border-color:var(--felt)}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 15px 13px;
+  box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;gap:9px;transition:.15s}
+.gcard:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(34,31,25,.13)}
+.gcard.gone{opacity:.66}
+.gcard .corner{position:absolute;top:0;right:0;width:30px;height:30px;
+  background:linear-gradient(135deg,transparent 50%,var(--felt) 50%);border-radius:0 16px 0 0}
+.gname{font-family:"Jua";font-size:17px;line-height:1.2;color:var(--ink);padding:0 18px 0 0;
+  word-break:keep-all;background:none;border:0;text-align:left;width:100%;cursor:pointer;transition:.12s}
+.gname:hover{color:var(--felt);text-decoration:underline;text-underline-offset:3px}
+.gdesigner{font-size:11.5px;color:var(--muted);margin-top:-2px}
+.gmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{font-size:11.5px;padding:3px 9px;border-radius:999px;background:#F2EBDA;color:#7a6f57;white-space:nowrap}
+.tag.method{background:#EAF1EC;color:#42795a}
+.price{font-family:"Black Han Sans";font-size:19px;color:var(--ink);margin-top:2px}
+.price small{font-family:"Gowun Dodum";font-size:11px;color:var(--muted);font-weight:400;margin-left:3px}
+.gfoot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px;border-top:1px dashed var(--line)}
+.date{font-size:11.5px;color:var(--muted)}
+.badge{font-size:11px;padding:3px 9px;border-radius:999px;font-family:"Jua"}
+.badge.owned{background:#E6F3EA;color:var(--owned)}
+.badge.gone{background:#F8E9E5;color:var(--gone)}
+.plays-link{font-size:11.5px;color:var(--jh);background:none;border:0;padding:2px 0;text-decoration:underline}
+.row-actions{display:flex;gap:6px}
+.iconbtn{background:none;border:0;color:var(--muted);font-size:13px;padding:3px 5px;border-radius:7px}
+.iconbtn:hover{background:#F1ECDF;color:var(--ink)}
+
+/* PLAY LOG */
+.plist{display:flex;flex-direction:column;gap:16px}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);overflow:hidden}
+.phead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:15px 18px;
+  background:linear-gradient(var(--paper),var(--paper));border-bottom:1px solid var(--line)}
+.ptitle{font-family:"Jua";font-size:19px;color:var(--ink)}
+.pmeta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-left:2px}
+.pm{font-size:12px;color:var(--muted)}
+.pm b{color:var(--ink);font-weight:400}
+.win{font-size:12px;background:#FBF1D8;color:#9a7b1e;padding:3px 10px;border-radius:999px;font-family:"Jua"}
+.cnt{font-size:11.5px;background:#ECEFF6;color:var(--jh);padding:3px 10px;border-radius:999px}
+.reviews{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:560px){.reviews{grid-template-columns:1fr}}
+.rev{padding:15px 18px;border-top:1px solid var(--line)}
+.rev+.rev{border-left:1px solid var(--line)}
+@media(max-width:560px){.rev+.rev{border-left:0}}
+.rev-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.nick{width:30px;height:30px;border-radius:9px;color:#fff;font-family:"Jua";font-size:13px;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.nickname{font-size:13px;color:var(--muted)}
+.score{margin-left:8px;font-family:"Black Han Sans";font-size:20px}
+.score small{font-family:"Gowun Dodum";font-size:11px;color:var(--muted);font-weight:400}
+.stars{letter-spacing:1px;font-size:13px;margin-left:auto;color:var(--gold)}
+.rev-top .nickname{margin-right:auto}
+.gscore{font-size:12px;font-family:"Jua";background:#ECEFF6;color:var(--jh);padding:3px 10px;border-radius:999px}
+.winmark{font-size:12px;margin-left:4px}
+.rev-text{font-size:13.5px;color:#3c382f;white-space:pre-wrap;word-break:break-word}
+.rev.empty .rev-text{color:#b8b09c}
+
+/* EMPTY */
+.empty{text-align:center;padding:70px 20px;color:var(--muted)}
+.empty .big{font-family:"Jua";font-size:21px;color:var(--ink);margin-bottom:6px}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(34,31,25,.45);display:none;
+  align-items:flex-start;justify-content:center;padding:30px 16px;z-index:50;overflow:auto}
+.overlay.on{display:flex}
+.modal{background:var(--paper);border-radius:20px;max-width:560px;width:100%;
+  box-shadow:0 24px 60px rgba(0,0,0,.3);animation:pop .18s ease}
+@keyframes pop{from{transform:translateY(12px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.mhead{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;
+  border-bottom:1px solid var(--line)}
+.mhead h3{font-family:"Jua";font-size:19px;margin:0}
+.x{background:none;border:0;font-size:22px;color:var(--muted);line-height:1}
+.mbody{padding:18px 22px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;font:inherit;font-size:14px;color:var(--ink);
+  background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;outline:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--felt)}
+.field textarea{resize:vertical;min-height:64px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.revblock{background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:13px;margin-bottom:12px}
+.revblock .rh{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.revblock .rh .nick{width:26px;height:26px;font-size:12px}
+.revblock .rh b{font-size:14px}
+.revblock .pname{flex:1;min-width:0;font:inherit;font-size:14px;color:var(--ink);background:#fff;
+  border:1.5px solid var(--line);border-radius:9px;padding:7px 10px;outline:none}
+.revblock .pname:focus{border-color:var(--felt)}
+.wintog{background:#fff;border:1.5px solid var(--line);border-radius:9px;font-size:14px;padding:5px 8px;
+  filter:grayscale(1);opacity:.5;transition:.12s}
+.wintog.on{filter:none;opacity:1;border-color:var(--gold);background:#FBF1D8}
+.revblock .rm{color:var(--muted);font-size:12px;background:none;border:0;padding:4px 6px}
+.revblock .rm:hover{color:var(--gone)}
+.prow{display:flex;gap:12px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
+.minlbl{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.minlbl .gscore{font:inherit;font-size:13px;width:120px;border:1.5px solid var(--line);border-radius:9px;padding:6px 9px;outline:none;color:var(--ink)}
+.minlbl .gscore:focus{border-color:var(--felt)}
+.scorerow{display:flex;align-items:center;gap:10px;margin-bottom:0;flex:1;min-width:180px}
+.scorerow input[type=range]{flex:1;accent-color:var(--felt)}
+.scoreval{font-family:"Black Han Sans";font-size:17px;min-width:30px;text-align:right;color:var(--felt)}
+.nickchips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.nickchip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1.5px solid var(--line);
+  color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;transition:.12s}
+.nickchip:hover{border-color:var(--felt);background:#fff}
+.nickchip .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.addnick{background:#fff;border:1.5px dashed var(--line);color:var(--muted);border-radius:11px;
+  padding:9px;width:100%;font-size:13px}
+.mfoot{display:flex;gap:10px;justify-content:flex-end;padding:16px 22px;border-top:1px solid var(--line)}
+.btn{font-family:"Jua";font-size:15px;border-radius:11px;padding:10px 20px;border:0}
+.btn.save{background:var(--felt);color:#fff}
+.btn.cancel{background:#EDE6D6;color:var(--muted)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+.savebar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);
+  color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
+.savebar.show{opacity:1}
+
+/* friend rating page + share button */
+.iconbtn.share{color:var(--jh);border-color:#CBD8EA}
+.iconbtn.share:hover{background:#EDF2F9}
+body.rate-mode .tabs,body.rate-mode .tools,body.rate-mode #stats{display:none}
+body.rate-mode .hero{padding-bottom:20px}
+.ratewrap{display:flex;justify-content:center;padding:8px 0 40px}
+.ratecard{background:var(--card);border:1.5px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:24px 22px;max-width:440px;width:100%}
+.ratecard .reyebrow{font-size:12px;letter-spacing:1px;color:var(--owned);text-transform:uppercase;margin-bottom:6px}
+.ratecard .rk{font-family:"Black Han Sans";font-size:26px;color:var(--ink);line-height:1.1;margin-bottom:16px;word-break:keep-all}
+.ratecard .field{margin-bottom:14px}
+.ratecard .rmsg{font-size:14px;color:var(--muted);line-height:1.6;margin-top:12px}
+
+/* BGG enrichment */
+.thumbwrap{margin:-3px -3px 2px;border-radius:12px;overflow:hidden;background:#EFE8D8;aspect-ratio:1.5/1;display:flex;align-items:center;justify-content:center}
+.thumbwrap img{width:100%;height:100%;object-fit:cover;display:block}
+.bgg-badges{display:flex;gap:6px;flex-wrap:wrap}
+.bb{font-size:11px;padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;font-family:"Jua"}
+.bb.weight,.bb.diff{background:#EFE7F4;color:#7A4FA0}
+.bb.players{background:#E7F0F4;color:#2F6E84}
+.bgg-link{font-size:11px;color:#E07A5F;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.bgg-tag{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;background:#FFF1E9;color:#c2603f;padding:2px 7px;border-radius:999px}
+.btn.bgg{background:#E8632E;color:#fff}
+.bgg-bulk{background:#E8632E;border:1px solid #E8632E;color:#fff;border-radius:11px;padding:9px 13px;font-size:13px;transition:.15s}
+.bgg-bulk:hover{filter:brightness(1.05)}
+.bggbar{background:#FFF3EC;border:1px solid #F4D5C3;border-radius:12px;padding:11px 14px;font-size:13px;color:#9a4a2a;display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.progress{flex:1;min-width:120px;height:8px;background:#F0DBCD;border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:#E8632E;transition:.2s}
+.cand{display:flex;gap:11px;align-items:center;padding:10px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:9px;cursor:pointer;background:#fff;transition:.12s;text-align:left;width:100%}
+.cand:hover{border-color:#E8632E;background:#FFF8F3}
+.cand img{width:54px;height:54px;object-fit:cover;border-radius:9px;background:#EFE8D8;flex:0 0 auto}
+.cand .ci{flex:1;min-width:0}
+.cand .cn{font-family:"Jua";font-size:15px;color:var(--ink)}
+.cand .cm{font-size:11.5px;color:var(--muted);margin-top:2px}
+.bgg-note{font-size:12px;color:var(--muted);background:#F7F2E7;border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.5}
+.statemsg{font-size:13px;color:var(--muted);text-align:center;padding:20px}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid #F4D5C3;border-top-color:#E8632E;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.storage-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#E7F0E9;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.2);border-radius:11px;padding:7px 11px}
+.storage-badge .sd{width:7px;height:7px;border-radius:50%;background:#8FD3A8}
+</style>
+
+<div class="hero">
+  <div class="hero-top">
+    <div class="logo">
+      <div class="meeples" aria-label="보드게임 컬렉션">
+        <svg class="meeple" viewBox="0 0 24 28"><path fill="#E07A5F" d="M12 0a4 4 0 014 4c0 1.5-.8 2.8-2 3.5 3 1 5 3.4 5 7.5l-3 2 1 11H7l1-11-3-2c0-4.1 2-6.5 5-7.5C8.8 6.8 8 5.5 8 4a4 4 0 014-4z"/></svg>
+        <svg class="meeple" viewBox="0 0 24 28"><path fill="#3A6EA5" d="M12 0a4 4 0 014 4c0 1.5-.8 2.8-2 3.5 3 1 5 3.4 5 7.5l-3 2 1 11H7l1-11-3-2c0-4.1 2-6.5 5-7.5C8.8 6.8 8 5.5 8 4a4 4 0 014-4z"/></svg>
+        <svg class="meeple" viewBox="0 0 24 28"><path fill="#CC9A3E" d="M12 0a4 4 0 014 4c0 1.5-.8 2.8-2 3.5 3 1 5 3.4 5 7.5l-3 2 1 11H7l1-11-3-2c0-4.1 2-6.5 5-7.5C8.8 6.8 8 5.5 8 4a4 4 0 014-4z"/></svg>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="tools">
+      <span class="storage-badge" id="storageMode" title="현재 데이터가 저장되는 위치"></span>
+      <button class="ghost" id="exportBtn">백업 내보내기</button>
+      <button class="ghost" id="importBtn">불러오기</button>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab" data-tab="collection" aria-selected="true">🎲 보유 게임</button>
+    <button class="tab" data-tab="plays" aria-selected="false">📖 플레이 기록</button>
+  </div>
+  <div id="view"></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="savebar" id="savebar">저장됨</div>
+<input type="file" id="fileInput" accept="application/json" style="display:none">
+
+<script>
+const SEED = {"games": [{"id": "g1", "name": "펭귄파티", "vendor": "게임올로지", "method": "", "price": 9800, "date": "2022.07.10", "owned": true, "disposal": ""}, {"id": "g2", "name": "세일럼 1692", "vendor": "아스모디", "method": "", "price": 29400, "date": "2022.07.10", "owned": true, "disposal": ""}, {"id": "g3", "name": "사보타지", "vendor": "코리아보드게임즈", "method": "", "price": 8150, "date": "2022.07.10", "owned": true, "disposal": ""}, {"id": "g4", "name": "독수리눈치싸움", "vendor": "코리아보드게임즈", "method": "", "price": 9500, "date": "2022.07.10", "owned": true, "disposal": ""}, {"id": "g5", "name": "레지스탕스 아발론", "vendor": "코리아보드게임즈", "method": "", "price": 13900, "date": "2022.07.10", "owned": true, "disposal": ""}, {"id": "g6", "name": "팬데믹", "vendor": "코리아보드게임즈", "method": "", "price": 32740, "date": "2022.07.10", "owned": true, "disposal": ""}, {"id": "g7", "name": "보틀임프", "vendor": "팝콘게임즈", "method": "", "price": 12000, "date": "2022.07.10", "owned": true, "disposal": ""}, {"id": "g8", "name": "캔트스탑", "vendor": "게임올로지", "method": "", "price": 17400, "date": "2022.07.21", "owned": true, "disposal": ""}, {"id": "g9", "name": "드렉사우 딜럭스", "vendor": "보드엠", "method": "", "price": 20800, "date": "2022.07.21", "owned": true, "disposal": ""}, {"id": "g10", "name": "카멜업 2쇄", "vendor": "코리아보드게임즈", "method": "", "price": 43500, "date": "2022.07.21", "owned": true, "disposal": ""}, {"id": "g11", "name": "보난자", "vendor": "코리아보드게임즈", "method": "", "price": 9200, "date": "2022.07.21", "owned": false, "disposal": "방출"}, {"id": "g12", "name": "언락1", "vendor": "코리아보드게임즈", "method": "", "price": 33200, "date": "2022.10.16", "owned": false, "disposal": "방출(영석이)"}, {"id": "g13", "name": "스페이스 크루", "vendor": "코리아보드게임즈", "method": "", "price": 12350, "date": "2022.10.16", "owned": true, "disposal": ""}, {"id": "g14", "name": "스컬킹", "vendor": "팝콘게임즈", "method": "", "price": 14400, "date": "2022.10.16", "owned": true, "disposal": ""}, {"id": "g15", "name": "카네기", "vendor": "코리아보드게임즈", "method": "", "price": 73000, "date": "2022.10.16", "owned": true, "disposal": ""}, {"id": "g16", "name": "카탄", "vendor": "코리아보드게임즈", "method": "", "price": 41300, "date": "2022.11.19", "owned": true, "disposal": ""}, {"id": "g17", "name": "캐스캐디아", "vendor": "코리아보드게임즈", "method": "", "price": 44250, "date": "2022.11.19", "owned": true, "disposal": ""}, {"id": "g18", "name": "모아보새", "vendor": "행복한 바오밥", "method": "", "price": 16500, "date": "2022.12.05", "owned": false, "disposal": "중고 일괄(2)"}, {"id": "g19", "name": "토르투가 1667", "vendor": "아스모디", "method": "", "price": 29400, "date": "2022.12.05", "owned": true, "disposal": ""}, {"id": "g20", "name": "카스텔로메쏘니", "vendor": "만두게임즈", "method": "", "price": 26950, "date": "2022.12.11", "owned": true, "disposal": ""}, {"id": "g21", "name": "엘리베이터 앞에서", "vendor": "팝콘게임즈", "method": "", "price": 9000, "date": "2022.12.13", "owned": true, "disposal": ""}, {"id": "g22", "name": "애니모크레이지", "vendor": "팝콘게임즈", "method": "", "price": 19800, "date": "2022.12.13", "owned": true, "disposal": ""}, {"id": "g23", "name": "오션스", "vendor": "팝콘게임즈", "method": "", "price": 38400, "date": "2022.12.13", "owned": true, "disposal": ""}, {"id": "g24", "name": "그레이트 플레인스", "vendor": "팝콘게임즈", "method": "", "price": 22800, "date": "2022.12.13", "owned": true, "disposal": ""}, {"id": "g25", "name": "한자 토이토니카", "vendor": "만두게임즈", "method": "", "price": 17250, "date": "2022.12.13", "owned": true, "disposal": ""}, {"id": "g26", "name": "메르카두 드 리스보아", "vendor": "팝콘게임즈", "method": "", "price": 25600, "date": "2022.12.27", "owned": true, "disposal": ""}, {"id": "g27", "name": "레지사이드", "vendor": "보드엠", "method": "", "price": 13900, "date": "2022.12.27", "owned": false, "disposal": "선물(김나둥)"}, {"id": "g28", "name": "원더풀 킹덤", "vendor": "MTS", "method": "", "price": 27000, "date": "2022.12.29", "owned": false, "disposal": "중고 일괄(2)"}, {"id": "g29", "name": "별의 기록 : 지구", "vendor": "MTS", "method": "", "price": 20800, "date": "2022.12.29", "owned": false, "disposal": "중고 일괄(2)"}, {"id": "g30", "name": "캐노피", "vendor": "하비게임몰", "method": "", "price": 25600, "date": "2022.12.29", "owned": true, "disposal": ""}, {"id": "g31", "name": "에볼루션 기후", "vendor": "", "method": "중고", "price": 36500, "date": "2023.01.08", "owned": true, "disposal": ""}, {"id": "g32", "name": "푸시피시", "vendor": "팝콘게임즈", "method": "", "price": 24500, "date": "2023.02.03", "owned": true, "disposal": ""}, {"id": "g33", "name": "미니 와일드 블루", "vendor": "피스크래프트", "method": "", "price": 16800, "date": "2023.02.03", "owned": true, "disposal": ""}, {"id": "g34", "name": "돌팔이 약장수", "vendor": "코리아보드게임즈", "method": "", "price": 26210, "date": "2023.04.15", "owned": true, "disposal": ""}, {"id": "g35", "name": "돌팔이 약장수 - 허브마녀", "vendor": "코리아보드게임즈", "method": "", "price": 31340, "date": "2023.04.15", "owned": true, "disposal": ""}, {"id": "g36", "name": "프로젝트 L", "vendor": "코리아보드게임즈", "method": "", "price": 31940, "date": "2023.04.15", "owned": true, "disposal": ""}, {"id": "g37", "name": "커피러시", "vendor": "코리아보드게임즈", "method": "", "price": 28600, "date": "2023.04.27", "owned": true, "disposal": ""}, {"id": "g38", "name": "카이트", "vendor": "아스모디", "method": "", "price": 21450, "date": "2023.05.02", "owned": true, "disposal": ""}, {"id": "g39", "name": "트리케타", "vendor": "아스모디", "method": "", "price": 33600, "date": "2023.05.02", "owned": true, "disposal": ""}, {"id": "g40", "name": "데드우드1876", "vendor": "아스모디", "method": "", "price": 28640, "date": "2023.05.02", "owned": true, "disposal": ""}, {"id": "g41", "name": "브리스톨1350", "vendor": "아스모디", "method": "", "price": 28640, "date": "2023.05.02", "owned": true, "disposal": ""}, {"id": "g42", "name": "벼룩서커스", "vendor": "게임올로지", "method": "", "price": 9100, "date": "2023.05.28", "owned": true, "disposal": ""}, {"id": "g43", "name": "더 마인드", "vendor": "팝콘게임즈", "method": "", "price": 10800, "date": "2023.05.28", "owned": true, "disposal": ""}, {"id": "g44", "name": "도토리산", "vendor": "팝콘게임즈", "method": "", "price": 9900, "date": "2023.05.28", "owned": true, "disposal": ""}, {"id": "g45", "name": "문명의 시대", "vendor": "아스모디", "method": "", "price": 35200, "date": "2023.08.28", "owned": true, "disposal": ""}, {"id": "g46", "name": "블랙스토리즈 - 어이없는죽음", "vendor": "아스모디", "method": "", "price": 12600, "date": "2023.08.28", "owned": true, "disposal": ""}, {"id": "g47", "name": "블랙스토리즈 - 음모론", "vendor": "아스모디", "method": "", "price": 12600, "date": "2023.08.28", "owned": true, "disposal": ""}, {"id": "g48", "name": "언락2", "vendor": "코리아보드게임즈", "method": "", "price": 28910, "date": "2023.08.28", "owned": false, "disposal": "방출(영석이)"}, {"id": "g49", "name": "포르토", "vendor": "", "method": "", "price": 25570, "date": "2023.08.28", "owned": false, "disposal": "중고 일괄(2)"}, {"id": "g50", "name": "브루", "vendor": "로터스프로그", "method": "", "price": 21600, "date": "2023.09.24", "owned": true, "disposal": ""}, {"id": "g51", "name": "기차섬", "vendor": "로터스프로그", "method": "", "price": 21000, "date": "2023.09.24", "owned": true, "disposal": ""}, {"id": "g52", "name": "제왕의 깃발", "vendor": "만두게임즈", "method": "", "price": 15000, "date": "2023.09.24", "owned": true, "disposal": ""}, {"id": "g53", "name": "제왕의 불꽃", "vendor": "만두게임즈", "method": "", "price": 15000, "date": "2023.09.24", "owned": true, "disposal": ""}, {"id": "g54", "name": "노머시", "vendor": "팝콘게임즈", "method": "", "price": 11400, "date": "2023.09.24", "owned": true, "disposal": ""}, {"id": "g55", "name": "방랑", "vendor": "로터스프로그", "method": "", "price": 30000, "date": "2023.12.16", "owned": true, "disposal": ""}, {"id": "g56", "name": "인트리게", "vendor": "만두게임즈", "method": "", "price": 14500, "date": "2023.12.16", "owned": true, "disposal": ""}, {"id": "g57", "name": "베일오브이터니티", "vendor": "아스모디", "method": "", "price": 26600, "date": "2023.12.16", "owned": true, "disposal": ""}, {"id": "g58", "name": "블랙프라이데이", "vendor": "아스모디", "method": "", "price": 44420, "date": "2023.12.16", "owned": true, "disposal": ""}, {"id": "g59", "name": "펠리시티", "vendor": "팝콘게임즈", "method": "", "price": 14940, "date": "2023.12.16", "owned": true, "disposal": ""}, {"id": "g60", "name": "오잉크 덤불속", "vendor": "팝콘게임즈", "method": "", "price": 23000, "date": "2023.12.16", "owned": true, "disposal": ""}, {"id": "g61", "name": "코덱스", "vendor": "MTS", "method": "", "price": 14400, "date": "2023.12.16", "owned": true, "disposal": ""}, {"id": "g62", "name": "세자매", "vendor": "MTS", "method": "", "price": 29200, "date": "2023.12.16", "owned": true, "disposal": ""}, {"id": "g63", "name": "퍼치", "vendor": "옐로우스타게임즈", "method": "펀딩", "price": 59000, "date": "2024.02.11", "owned": true, "disposal": ""}, {"id": "g64", "name": "어스", "vendor": "옐로우스타게임즈", "method": "", "price": 54000, "date": "2024.02.11", "owned": true, "disposal": ""}, {"id": "g65", "name": "마이셀리아", "vendor": "옐로우스타게임즈", "method": "펀딩", "price": 50500, "date": "2024.03.04", "owned": true, "disposal": ""}, {"id": "g66", "name": "하모니즈", "vendor": "코리아보드게임즈", "method": "", "price": 39500, "date": "2024.04.23", "owned": true, "disposal": ""}, {"id": "g67", "name": "마이셀리아 - 덱빌딩", "vendor": "", "method": "11마존", "price": 43380, "date": "2024.04.24", "owned": true, "disposal": ""}, {"id": "g68", "name": "본사이", "vendor": "", "method": "11마존", "price": 36590, "date": "2024.04.24", "owned": true, "disposal": ""}, {"id": "g69", "name": "카르텔", "vendor": "팝콘에듀", "method": "", "price": 5400, "date": "2024.05.03", "owned": true, "disposal": ""}, {"id": "g70", "name": "커피러시 케이크 확장", "vendor": "코리아보드게임즈", "method": "파주슈필", "price": 16800, "date": "2024.05.26", "owned": true, "disposal": ""}, {"id": "g71", "name": "꿈의 대화", "vendor": "코리아보드게임즈", "method": "파주슈필 사은품", "price": 0, "date": "2024.05.26", "owned": true, "disposal": ""}, {"id": "g72", "name": "미스터리 하우스", "vendor": "코리아보드게임즈", "method": "파주슈필 사은품", "price": 0, "date": "2024.05.26", "owned": true, "disposal": ""}, {"id": "g73", "name": "도적단의 월급날", "vendor": "코리아보드게임즈즈", "method": "파주슈필", "price": 9900, "date": "2024.05.26", "owned": true, "disposal": ""}, {"id": "g74", "name": "전지적 추리 시점", "vendor": "코리아보드게임즈즈", "method": "파주슈필", "price": 39000, "date": "2024.05.26", "owned": true, "disposal": ""}, {"id": "g75", "name": "오토배틀 챌린저스", "vendor": "코리아보드게임즈즈", "method": "파주슈필", "price": 38300, "date": "2024.05.26", "owned": true, "disposal": ""}, {"id": "g76", "name": "퍼스트 콘택트", "vendor": "보드엠", "method": "", "price": 9900, "date": "2024.07.13", "owned": true, "disposal": ""}, {"id": "g77", "name": "파러웨이", "vendor": "보드엠", "method": "보드게임콘", "price": 9900, "date": "2024.07.13", "owned": true, "disposal": ""}, {"id": "g78", "name": "월드원더스", "vendor": "코리아보드게임즈", "method": "학교(₩49,400)", "price": 0, "date": "2024.09.30", "owned": true, "disposal": ""}, {"id": "g79", "name": "트리케타 확장", "vendor": "", "method": "11마존", "price": 20870, "date": "2024.10.08", "owned": true, "disposal": ""}, {"id": "g80", "name": "나르", "vendor": "", "method": "11마존", "price": 28850, "date": "2024.10.08", "owned": true, "disposal": ""}, {"id": "g81", "name": "서퍼사우르스", "vendor": "아스모디", "method": "", "price": 13900, "date": "2024.11.19", "owned": true, "disposal": ""}, {"id": "g82", "name": "해기스", "vendor": "아스모디", "method": "", "price": 17900, "date": "2024.11.19", "owned": true, "disposal": ""}, {"id": "g83", "name": "베일오브이터니티 아티팩츠 확장", "vendor": "아스모디", "method": "", "price": 15900, "date": "2024.11.19", "owned": true, "disposal": ""}, {"id": "g84", "name": "카이사르", "vendor": "아스모디", "method": "", "price": 9900, "date": "2024.11.26", "owned": true, "disposal": ""}, {"id": "g85", "name": "백로성", "vendor": "아스모디", "method": "", "price": 26900, "date": "2024.11.26", "owned": true, "disposal": ""}, {"id": "g86", "name": "포레스트 셔플", "vendor": "아스모디", "method": "", "price": 31410, "date": "2024.11.27", "owned": true, "disposal": ""}, {"id": "g87", "name": "주말의 살인귀", "vendor": "언더독", "method": "", "price": 24200, "date": "2025.01.09", "owned": false, "disposal": "중고 일괄(1)"}, {"id": "g88", "name": "보랏못 리라이트", "vendor": "언더독", "method": "", "price": 24200, "date": "2025.01.09", "owned": false, "disposal": "중고 일괄(1)"}, {"id": "g89", "name": "에스노스 2판", "vendor": "보드엠", "method": "선주문", "price": 46850, "date": "2025.01.15", "owned": true, "disposal": ""}, {"id": "g90", "name": "오늘 벚꽃이 죽어버렸다", "vendor": "딜라이트", "method": "펀딩", "price": 19950, "date": "2025.01.16", "owned": false, "disposal": "중고 일괄(1)"}, {"id": "g91", "name": "파랑새", "vendor": "딜라이트", "method": "펀딩", "price": 19950, "date": "2025.01.16", "owned": false, "disposal": "중고 일괄(1)"}, {"id": "g92", "name": "포레스트 셔플 숲의 변두리 확장", "vendor": "아스모디", "method": "", "price": 12900, "date": "2025.01.23", "owned": true, "disposal": ""}, {"id": "g93", "name": "아미티스의 건축가들", "vendor": "아스모디", "method": "", "price": 22900, "date": "2025.01.23", "owned": true, "disposal": ""}, {"id": "g94", "name": "스카이팀", "vendor": "아스모디", "method": "", "price": 37900, "date": "2025.02.13", "owned": true, "disposal": ""}, {"id": "g95", "name": "스카이팀 난기류 확장", "vendor": "아스모디", "method": "", "price": 13900, "date": "2025.02.13", "owned": true, "disposal": ""}, {"id": "g96", "name": "미스터리잼, 슬럼독스", "vendor": "언더독", "method": "펀딩", "price": 38500, "date": "2025.02.25", "owned": false, "disposal": "중고 일괄(1)"}, {"id": "g97", "name": "백로성 말차 확장", "vendor": "아스모디", "method": "", "price": 32200, "date": "2025.03.13", "owned": true, "disposal": ""}, {"id": "g98", "name": "시티즈", "vendor": "아스모디", "method": "", "price": 29900, "date": "2025.03.13", "owned": true, "disposal": ""}, {"id": "g99", "name": "에버델 듀오", "vendor": "딜라이트", "method": "펀딩", "price": 54000, "date": "2025.04.11", "owned": true, "disposal": ""}, {"id": "g100", "name": "메이플 밸리", "vendor": "팝콘게임즈", "method": "", "price": 39600, "date": "2025.04.29", "owned": true, "disposal": ""}, {"id": "g101", "name": "웬디 어른이 되렴", "vendor": "언더독", "method": "", "price": 22000, "date": "2025.05.01", "owned": true, "disposal": ""}, {"id": "g102", "name": "크리터 키친", "vendor": "히트게임즈", "method": "펀딩", "price": 74000, "date": "2025.05.20", "owned": true, "disposal": ""}, {"id": "g103", "name": "포레스트 셔플 알프스 확장", "vendor": "아스모디", "method": "", "price": 15200, "date": "2025.06.17", "owned": true, "disposal": ""}, {"id": "g104", "name": "오딘", "vendor": "아스모디", "method": "", "price": 12900, "date": "2025.06.17", "owned": true, "disposal": ""}, {"id": "g105", "name": "기린기린", "vendor": "아스모디", "method": "", "price": 17600, "date": "2025.06.17", "owned": true, "disposal": ""}, {"id": "g106", "name": "탁상탐정단 - 진홍의 골동품", "vendor": "", "method": "중고", "price": 20000, "date": "2025.07.10", "owned": true, "disposal": ""}, {"id": "g107", "name": "탁상탐정단 - 그랜드호텔듀엣", "vendor": "", "method": "중고", "price": 20000, "date": "2025.07.10", "owned": true, "disposal": ""}, {"id": "g108", "name": "캐슬콤보", "vendor": "아스모디", "method": "웅진마켓", "price": 24700, "date": "2025.07.12", "owned": true, "disposal": ""}, {"id": "g109", "name": "에버그린", "vendor": "히트게임즈", "method": "2025.보드게임콘", "price": 48000, "date": "2025.07.19", "owned": true, "disposal": ""}, {"id": "g110", "name": "에버그린 - 소나무 확장", "vendor": "히트게임즈", "method": "2025.보드게임콘", "price": 0, "date": "2025.07.19", "owned": true, "disposal": ""}, {"id": "g111", "name": "컵 더 크랩", "vendor": "아스모디", "method": "2025.보드게임콘", "price": 14400, "date": "2025.07.19", "owned": true, "disposal": ""}, {"id": "g112", "name": "인필드레이터", "vendor": "아스모디", "method": "2025.보드게임콘", "price": 4000, "date": "2025.07.19", "owned": true, "disposal": ""}, {"id": "g113", "name": "궁신", "vendor": "팝콘게임즈", "method": "2025.보드게임콘", "price": 20000, "date": "2025.07.19", "owned": true, "disposal": ""}, {"id": "g114", "name": "루우트", "vendor": "팝콘게임즈", "method": "2025.보드게임콘", "price": 29000, "date": "2025.07.19", "owned": true, "disposal": ""}, {"id": "g115", "name": "펜토리니 * 2", "vendor": "플레이트", "method": "", "price": 27400, "date": "2025.08.28", "owned": true, "disposal": ""}, {"id": "g116", "name": "제니스", "vendor": "옐로우스타게임즈", "method": "펀딩", "price": 43900, "date": "2025.09.22", "owned": true, "disposal": ""}, {"id": "g117", "name": "캘리코", "vendor": "팝콘", "method": "", "price": 16800, "date": "2025.10.10", "owned": true, "disposal": ""}, {"id": "g118", "name": "스카이가든+확장 풀셋", "vendor": "옐로우스타게임즈", "method": "펀딩", "price": 100000, "date": "2025.10.15", "owned": true, "disposal": ""}, {"id": "g119", "name": "태그팀", "vendor": "아스모디", "method": "", "price": 21060, "date": "2025.10.30", "owned": true, "disposal": ""}, {"id": "g120", "name": "플립7", "vendor": "아스모디", "method": "", "price": 16800, "date": "2025.10.30", "owned": true, "disposal": ""}, {"id": "g121", "name": "좋은놈, 나쁜놈, 그리고 염소", "vendor": "아스모디", "method": "", "price": 16920, "date": "2025.10.31", "owned": true, "disposal": ""}, {"id": "g122", "name": "베일오브이터니티 저주 확장", "vendor": "아스모디", "method": "", "price": 16800, "date": "2025.10.31", "owned": true, "disposal": ""}, {"id": "g123", "name": "2인 머더:clear,ghost,decalcomanie", "vendor": "스튜디어오 NG", "method": "펀딩", "price": 33000, "date": "2025.11.07", "owned": false, "disposal": "중고 일괄(1)"}, {"id": "g124", "name": "세티", "vendor": "보드피아", "method": "김나둥(₩86,000)", "price": 0, "date": "2025.11.24", "owned": true, "disposal": ""}, {"id": "g125", "name": "MEMORY:달이지나간 자리", "vendor": "키이스케이프", "method": "펀딩", "price": 37000, "date": "2025.12.03", "owned": true, "disposal": ""}, {"id": "g126", "name": "바르셀로나 + 프로모", "vendor": "히트게임즈", "method": "김나둥(₩44,400)", "price": 0, "date": "2025.12.18", "owned": true, "disposal": ""}, {"id": "g127", "name": "나보리아의 탐험가 + 확장", "vendor": "히트게임즈", "method": "김나둥(₩63,000)", "price": 0, "date": "2025.12.18", "owned": true, "disposal": ""}, {"id": "g128", "name": "도미니언", "vendor": "코리아보드게임즈", "method": "인호t", "price": 0, "date": "2025.05.18", "owned": true, "disposal": ""}, {"id": "g129", "name": "도미니언 - 장막 뒤의 사람들", "vendor": "코리아보드게임즈", "method": "중고", "price": 10000, "date": "2025.05.18", "owned": true, "disposal": ""}, {"id": "g130", "name": "도미니언 - 위대한 제국", "vendor": "코리아보드게임즈", "method": "중고", "price": 10000, "date": "2025.05.18", "owned": true, "disposal": ""}, {"id": "g131", "name": "카후나", "vendor": "코리아보드게임즈", "method": "", "price": null, "date": "", "owned": true, "disposal": ""}, {"id": "g132", "name": "월드원더스 문도 확장", "vendor": "", "method": "11마존", "price": null, "date": "", "owned": true, "disposal": ""}, {"id": "g133", "name": "사이토시스", "vendor": "", "method": "학교(₩50,000)", "price": 0, "date": "", "owned": true, "disposal": ""}, {"id": "g134", "name": "페야의 늪", "vendor": "히트게임즈", "method": "선주문 - 복지포인트", "price": 35900, "date": "2026.03.11", "owned": true, "disposal": ""}, {"id": "g135", "name": "선라이즈 선셋", "vendor": "보드피아", "method": "", "price": 19800, "date": "2026.02.25", "owned": true, "disposal": ""}, {"id": "g136", "name": "보츠와나", "vendor": "만두게임즈", "method": "", "price": 23900, "date": "2026.02.11", "owned": true, "disposal": ""}, {"id": "g137", "name": "프리세이지", "vendor": "행복한바오밥", "method": "", "price": 20800, "date": "2026.02.11", "owned": true, "disposal": ""}, {"id": "g138", "name": "퍼치 확장 : 버드 오브 플레이", "vendor": "옐로우스타게임즈", "method": "펀딩 - 복지포인트", "price": 32000, "date": "2026.03.10", "owned": true, "disposal": ""}, {"id": "g139", "name": "칼립소", "vendor": "옐로우스타게임즈", "method": "펀딩 - 복지포인트", "price": 69000, "date": "2026.02.27", "owned": true, "disposal": ""}, {"id": "g140", "name": "피기옐로우", "vendor": "행복한바오밥", "method": "복지포인트", "price": 20370, "date": "2026.4.14", "owned": true, "disposal": ""}, {"id": "g141", "name": "에버그린 확장 : 벚나무와 대나무, 버섯", "vendor": "히트게임즈", "method": "복지포인트", "price": 49900, "date": "2026.4.15", "owned": true, "disposal": ""}, {"id": "g142", "name": "에버델: 은빛서리", "vendor": "딜라이트", "method": "펀딩 - 복지포인트", "price": 104500, "date": "2026.4.15", "owned": true, "disposal": ""}, {"id": "g143", "name": "마이셀리아 북아메리카 확장", "vendor": "옐로우스타게임즈", "method": "펀딩 - 복지포인트", "price": 37000, "date": "2026.4.20", "owned": true, "disposal": ""}, {"id": "g144", "name": "스윙데이즈 : 작전명 미상, project", "vendor": "미스터리게임즈", "method": "펀딩 - 복지포인트", "price": 66000, "date": "2026.5.7", "owned": true, "disposal": ""}, {"id": "g145", "name": "2인용 머더 : DHD", "vendor": "미스터리게임즈", "method": "펀딩 - 복지포인트", "price": 25000, "date": "2026.3.6", "owned": true, "disposal": ""}, {"id": "g146", "name": "플립툰즈", "vendor": "아스모디", "method": "펀딩 - 복지포인트", "price": 22800, "date": "2026.5.29", "owned": true, "disposal": ""}, {"id": "g147", "name": "돈키호테", "vendor": "아스모디", "method": "펀딩 - 복지포인트", "price": 10000, "date": "2026.5.29", "owned": true, "disposal": ""}], "plays": [{"id": "p1", "name": "월드원더스", "date": "10.18", "players": "2", "winner": "김장훈(42:37)", "count": "2회플", "reviews": [{"code": "JH", "score": 3.2, "text": "설명서가 조금 더 친절해도 좋지 않을까 싶다. 타일의 모양이 생각보다 너무 제한적이다. 큰 조각을 거의 쓸 일이 없다."}, {"code": "NY", "score": 3.5, "text": "단점 설명서가 아쉬움 큰 혼란을 야기함. 미플이 예쁘긴 하나 마감 처리가 아쉬움. 장점 퍼즐 하는 느낌으로 빈 공간에 꼭 들어맞았을 때의 쾌감이 큰 게임. 턴이 빨리 돌아오며 룰이 간단하다."}]}, {"id": "p2", "name": "미니와일드 블루", "date": "10.25", "players": "2", "winner": "김나영", "count": "초플", "reviews": [{"code": "JH", "score": 2.0, "text": "생태계가 다채로워지는 느낌이 더 좋을 것 같은데.. 먹이를 잡아먹어 더 큰 생명체를 놓는 방식만 괜찮다."}, {"code": "NY", "score": 1.9, "text": "생각보다 큰 점수를 내기 힘들었던 게임. 벌칙은 늘어나는데 그걸 극복할 경우의 수는 너무 적음. 일러스트가 꽤 귀엽긴 한데 카드 한 장을 버리고 나머지만 갖고 와야하는 장치는 왜 넣었는지 모르겠음."}]}, {"id": "p3", "name": "나르", "date": "10.26", "players": "2", "winner": "김나영", "count": "초플", "reviews": [{"code": "JH", "score": 3.4, "text": "점수가 점차 크게 터지는 방식, 생각보다 전략적으로 할 수 있는 플레이 빠른 전개 모두 맘에 든다. 추천할만하다. 40점은 갑자기 끝나는 경향이 있으나 60점이나 80점이어도 후반에 한 번에 점수가 날 것 같기도 하다."}, {"code": "NY", "score": 3.2, "text": "두 번째 사람이 게임을 끝내면 한 턴씩 더 하는 룰이 없어서 그냥 게임이 끝나버림. 승자는 패자의 얼굴에 대고 깔깔 웃을 수 있어서 행복하지만, 패자는 빅픽쳐가 다 깨져서 꽤나 아쉬울 것 같음. 그냥 자체적으로 80점으로 해두고 플레이해도 될듯. 규칙도 익히기 쉬웠고 간단해서 내기용 게임으로 괜찮았음."}]}, {"id": "p4", "name": "마이셀리아 (버섯 부패시키기)", "date": "10.26", "players": "2", "winner": "김나영", "count": "초플", "reviews": [{"code": "JH", "score": 2.5, "text": "포자가 퍼지는 방식이 우연이긴 하나 전체적으로 점수를 내는 방식이 다채롭지 못하다... 버섯만 키우고 있으나 잘하고 있는건지 전혀 모르겠다."}, {"code": "NY", "score": 1.5, "text": "버섯도 징그러운 그림이 많았고 너무 질질 늘어지는 플레이만 나올 것 같았다. 뭔가를 다양하게 해보기 보다는 결국 그나마 효율적인 하나의 루트만 타게 되는데 턴이 자주 돌아오지 않고 한 번에 같은 행동을 할 수 없어서 답답하다.  그 영역 구분도 머릿속에 잘 안 그려져서 플레이 도중 흥미가 뚝뚝 떨어짐."}]}, {"id": "p5", "name": "트리케타 + 확장", "date": "11.02", "players": "2", "winner": "김장훈", "count": "확장 초플", "reviews": [{"code": "JH", "score": 2.8, "text": "세팅이 너무 번거롭다. 2인보다는 사람이 조금 더 많아야 재미있지 않을까?... 1,2라운드는 크게 의미가 없다."}, {"code": "NY", "score": 1.0, "text": "확장은 그래도 재밌다고 한 사람 나와라."}]}, {"id": "p6", "name": "푸시 피쉬", "date": "11.09", "players": "2", "winner": "김장훈(43:42)", "count": "초플 (JH -3번째)", "reviews": [{"code": "JH", "score": 2.5, "text": "어느 정도 사람을 타는 게임인 것 같다. 알까기 형식의 힘조절이 잘 되었을 때는 나쁘지 않게 진행할 수 있으나 택도 없이 계속 실패한다면 하기 싫어지는 게임이다."}, {"code": "NY", "score": 3.1, "text": "머리를 안 써도 돼서 그냥 계속 꺄르르 웃으면서 한 게임. 굳이 미션 없이 물고기 잡기로만 진행해도 재밌을 것 같다. 미션 때문에 져서 그런 거 아니다. 근데 알까기도 운이 아니라 완전 실력이라 고인물이랑 하면 재미없을듯. 아빠랑은 절대 하면 안 된다."}]}, {"id": "p7", "name": "서퍼사우르스 맥스", "date": "11.23", "players": "2", "winner": "김나영(98:86)", "count": "초플", "reviews": [{"code": "JH", "score": 3.49, "text": "게임의 진행이 매우 빠르며, 3장만 내기에 조합을 위해선 상대의 카드도 생각할 수 밖에 없는 구조가 너무 마음에 든다. 2인플로 진행했으나 충분히 재미를 느낄 수 있었고 너무 많으면 조합 통제가 힘들것 같아 3~4인일때 가장 재미있을 것 같다."}, {"code": "NY", "score": 3.3, "text": "딱 3번만 낼 수 있다는 점이 아쉬우면서도 적당한 느낌. 원하는 덱을 만들기 위해서는 어느 정도 협동도 필요하지만, 2인일 경우 컴퓨터의 힘에 기대고 협동따위 개나 줘버렸을 때 특히 재밌다. 머리를 크게 쓸 필요는 없는데 경우의 수를 어느정도 계산할 수 있는 게임이라 내 취향이었음. 내기용으로 딱이다! 오빠한테 설거지 벌써 두 번 시킴ㅎㅎ"}]}, {"id": "p8", "name": "해기스", "date": "11.23", "players": "2", "winner": "김나영(113:90)", "count": "초플", "reviews": [{"code": "JH", "score": 2.99, "text": "달무티를 해봤다면 어떻게 이겨야 하는지가 보이는 게임, 폭탄의 존재로 한층 업그레이드 되었으며 턴을 뺏어올 수 있다."}, {"code": "NY", "score": 2.8, "text": "분명 이겼는데 기분이 좋지 않음. 베팅, 폭탄 시스템과 남은 카드는 상대에게 그대로 점수가 된다는 점이 특히 분하다. 사실 베팅이 제일 별로였다. 총점이 높은 사람이 아니라 먼저 카드를 다 낸 사람이 점수를 가지고 가는데, 조합이 되는대로 막 털어서 점수는 먹어도 남은 쩌리들을 먼저 털긴 어렵다. 그래도 서퍼사우르스보다 조금 더 경우의 수 계산이 쉬워서 나쁘지 않았다."}]}, {"id": "p9", "name": "퍼치", "date": "11.29", "players": "2", "winner": "김나영", "count": "초플", "reviews": [{"code": "JH", "score": 4.0, "text": "테마에 대한 몰입도가 상당하다. 새를 이주시키고 안착시키고 쫓아내는 행동까지 생각보다 강한 인터랙션까지 좋다."}, {"code": "NY", "score": 3.8, "text": "상대의 다음 수를 예측하느라 머리가 엄청 터질 뻔 했다. 테마를 잘 지킨 스토리면서 미플도 예쁘고 리플레이성도 좋아서 사실상 거의 완벽에 가까운 보드게임. 다시 해보고 싶은데 너무 머리가 아팠어서 살짝 두렵긴 하다. 규칙 자체도 엄청 어려운 건 아니라서 편했다. 나는 엄청 오랫동안 고민하면서 해서 이기기는 했지만, 그만큼 머리가 아프기도 했고 상대한테 약간 미안하기도 했다. 반대 입장일 땐 난 성질이 급해서 계속 빨리빨리를 외치는데 이번에 반성 좀 했다."}]}, {"id": "p10", "name": "마이셀리아 + 확장 (구슬 넣기)", "date": "11.30", "players": "2", "winner": "김나영", "count": "기본 2판 / 확장 2판", "reviews": [{"code": "JH", "score": 3.2, "text": "충분히 예쁜 게임이다. 다만 덱빌딩을 하기에는 카드가 바로 덱으로 가기에 턴 소모가 적어 맛이 조금 약하다."}, {"code": "NY", "score": 3.5, "text": "구슬이 또르르 떨어지는 게 너무 예쁜 게임. 엄청 어렵지도 않고 운이 좋으면 한 번에 호로록 없애버릴 수 있다. 확장도 포털을 하나 더 만드는 카드 등 딱 적당하게 추가된 것 같아서 좋았다. 예쁘면서 어렵지도 않고 내가 잘하는 게임. 짱이다!"}]}, {"id": "p11", "name": "카이사르", "date": "12.01", "players": "2", "winner": "김나영", "count": "초플", "reviews": [{"code": "JH", "score": 3.0, "text": "빠르게 끝나는 점이 장점, 정확히 토큰과 게임판의 배열을 파악하고 있다면 조금 더 전략적으로 할 수 있을 것 같다."}, {"code": "NY", "score": 2.96, "text": "머리 쓰는 게임을 많이 했다보니 이게 보드게임인가 싶었다. 누구와 플레이하느냐에 따라 머리 쓰는 정도가 달라질 것 같다. 값이 싸다고 들었던 것 같은데, 그만큼 예쁘거나 하진 않고 온통 종이 재질인 점은 좀 아쉽다."}]}, {"id": "p12", "name": "포레스트 셔플", "date": "12.02", "players": "2", "winner": "김장훈", "count": "초플", "reviews": [{"code": "JH", "score": 3.8, "text": "카드의 조합을 알고 있다면 어떤 조합을 할지 계획할 수 있지 않았을까 싶다. 2인플이다 보니 대부분의 카드를 다 쓸 수 있었고, 겨울이 하나씩 등장했을 때 갑자기 게임이 끝날 수도 있다는 점은 은근히 긴장하게 만드는 요소였다. 확장이 나온다고 하니 밸런스가 궁금하다."}, {"code": "NY", "score": 3.15, "text": "처음 해봐서 어떤 메타로 가야 할지 갈팡질팡하게 됐다. 그래도 나비도 나무도 모으기 어렵지는 않았지만, 그 외 몇 장 없는 특수 동물 카드는 구경도 못해봐서 아쉬웠다. 내 운이 안 좋은 거였겠지만.. 그 카드들이 점수가 큰데 만져보지도 못해서 개발림. 확장을 추가했을 때 좀 더 밸런스 패치가 되면 좋을 것 같다."}]}, {"id": "p13", "name": "보랏못 미스터리", "date": "", "players": "2", "winner": "", "count": "머더 미스터리", "reviews": [{"code": "JH", "score": 3.3, "text": "카드를 전체 다 획득하는 구조가 아니기 때문에 일부 이야기는 알지 못해 아쉽다. 정보가 조금은 부정확한 느낌이 강했고, 보미의 입장에서 플레이했을 때 가을이를 의심할 수 있을까 궁금하긴 하다. / 머더 재미있다."}, {"code": "NY", "score": 3.1, "text": "둘이서 같이 몰입해서 추리를 한다는 점이 재밌었다. 그러나 처음에 서로는 범인이 아니다라고 못 박고 시작했던 설정이 바로 깨지는데, 보미는 그걸 알 수가 없어서 나중에 이게 뭔가 싶었다. 너무 허접한 반전 설정 느낌이랄까? 정보 카드를 다 얻을 수 없어 삼촌이 그런 역할인 것도 허접한 억지 느낌이었다. 책으로 읽었으면 재밌었을듯."}]}, {"id": "p14", "name": "주말의 살인귀", "date": "", "players": "2", "winner": "", "count": "머더 미스터리", "reviews": [{"code": "JH", "score": 3.0, "text": "역할이 바뀐다는게 참신하다. 적어도 2캐릭터의 입장을 알게 되니 조금 더 스토리를 알게 되는 느낌은 있었으나 역할 자체가 약한 캐릭터가 존재한다는 생각이 든다. 그 부분이 아쉽다."}, {"code": "NY", "score": 3.000001, "text": "캐릭터 잘못 뽑으면 걍 끝장나는 게임. 마피아, 라이어 게임 등을 안 좋아하는 입장으로, 연기 제일 열심히 해야 하는 두 캐릭터 뽑아서 너무 힘들었다. 특히 이번 시리즈는 캐릭터마다의 투표 목적이 달라서 상대가 뭘하는지 전혀 파악이 안 되고 논의 시간에도 뭘 얘기해야 할지 모르겠다. 그냥 이런 내용의 영화가 있었으면 우와~하고 즐겁게 봤을듯."}]}, {"id": "p15", "name": "월드원더스 + 확장", "date": "25.01.23", "players": "2", "winner": "김장훈(34:33)", "count": "2회플", "reviews": [{"code": "JH", "score": 3.3, "text": "확장 규칙을 초반에 제대로 지키지 못해 아쉬운 부분이 있지만 조금 더 점수가 잘 나는 부분 생각할 거리가 있는 부분은 역시나 좋다. 게임이 끝날 때 놓아진 모습 또한 만족한다."}, {"code": "NY", "score": 3.4, "text": "미션이 추가되어 더 재밌어지긴 했지만 미션을 달성하는 게 전혀 어렵지 않아서 사실상 의미가 없기도 한 것 같다. 확장으로 안 나오고 처음부터 모든 카드가 미션이 있었어야 할 것 같은 느낌. 완성했을 때 너무 예쁜데 왜 자꾸 지기만 하는지가 의문이다. (솔직히 이번엔 오류플 때문에 졌다.)"}]}, {"id": "p16", "name": "백로성", "date": "25.01.24", "players": "2", "winner": "김나영", "count": "2회플", "reviews": [{"code": "JH", "score": 3.4, "text": "처음 해봤을 때는 9번만으로 빌드를 짜는 것의 맛을 잘 몰랐으나 다시 해보니 생각보다 너무 재미있다. 테마가 잘 녹아있는지는 솔직히 의문이지만 연쇄 행동이 잘 되기 위한 작업과 실제 진행했을 때의 짜릿함은 존재한다. 턴도 딱 아쉬울 때 끝난다."}, {"code": "NY", "score": 2.999999, "text": "생각할 것도 행동할 것도 너무 많은데 턴이 적어서 오히려 짜증나는 게임. 할 게 엄청 많았다가 적었다가 왔다갔다 한다. 활동이 연쇄적으로 착착 일어나는 맛이 있다고는 하지만, 생각보다 조건이 갖춰지기 쉽지 않다. 뭘 하려고 해도 자원이 계속 부족한데, 자원 얻으려고 몇 없는 턴을 낭비하는 게 매우 별로다. 재미가 없는 것도 아니고 예쁘기도 하지만 한 판 하려면 뭔가 마음의 준비가 필요하다."}]}, {"id": "p17", "name": "코덱스", "date": "25.01.24", "players": "2", "winner": "김나영", "count": "다회플", "reviews": [{"code": "JH", "score": 3.2, "text": "언제 해도 예쁘게 만들어지는 전체 그림이 좋다. 미션이 2장으로 고정된 것이 아니라 더 다채롭게 늘어난다면 또는 더미가 많아 카드 선택지가 늘어난다면 훨씬 더 재미있지 않을까 싶은 부분은 언제나 있다."}, {"code": "NY", "score": 3.3, "text": "금 테두리 덕분에 뭔가 고급지게 예쁜 게임. 규칙이 간단하고 카드만 있어서 뭔가 보드게임 딱 하나만 더 하고 싶을 때 언제든 손이 간다. 정말 간단한 규칙으로 최대한의 재미를 내는 것 같다. 대신 카드를 놓는 알고리즘이 할 때마다 헷갈리는 건 안 비밀. 공간 감각 지각 능력 떨어지면 은근 하기 힘들다. 자리 차지를 많이 하는 건 조금 아쉽다. 미션이 더 다양해질 게 없긴 하지만 아무튼 다양해지면 훨씬 재밌을 것 같다."}]}, {"id": "p18", "name": "아미타스의 건축가", "date": "25.01.25", "players": "2", "winner": "김나영", "count": "테플 후 1회플", "reviews": [{"code": "JH", "score": 3.4, "text": "2인이서 즐기기에 딱 좋다. 은근히 하나하나의 행동에 생각할 거리가 많다. 건축가를 빙고의 형태로 놓는 것, 타일을 모양에 맞게 배치하는 것, 어떤 기호와 색깔의 건축물을 가져올지 이를 한 번에 고민해야 한다는 게 딱 좋다. 빠르게 끝나는 부분도 장점이다."}, {"code": "NY", "score": 3.4, "text": "게임이 체감상 너무 이르게도 느리게도 끝나지 않는다. 내가 그려놨던 빅픽쳐를 어느 정도 완성했을 때쯤 게임이 알맞게 끝이 나서 좋았다. 점수 내는 방식도 직관적이고 쉬우면서도 머리를 은근 쓰게 만들어서 좋다. 여러 모로 피로도가 높지 않고 타일도 알록달록 예뻐서 만족! 테플은 내가 17점 차이로 압승! 두 판 다 내가 승!!"}]}], "nicknames": [{"code": "JH", "name": "김장훈", "color": "#3A6EA5"}, {"code": "NY", "name": "김나영", "color": "#E07A5F"}]};
+const NICK_PALETTE = ["#3A6EA5","#E07A5F","#5B9279","#9B6FB0","#C9923E","#4A8FA8","#C75D6E"];
+
+/* ---------- storage (Firebase 동기화 ↔ localStorage 폴백) ---------- */
+/*
+  ┌ 기기 간 동기화(친구 평가 링크 포함)를 켜려면 아래 FIREBASE_CONFIG 에
+  │ Firebase 콘솔 > 프로젝트 설정 > 웹 앱의 config 객체를 붙여넣으세요.
+  │ apiKey / projectId 가 채워지면 자동으로 Firebase(Firestore) 모드로 전환됩니다.
+  │ 비워두면 이 브라우저의 localStorage 에 저장됩니다(클로드 미리보기 포함).
+  └ Firestore 보안 규칙 예시는 파일 하단 주석 참고. */
+const FIREBASE_CONFIG = (typeof window!=="undefined" && window.__FB_CONFIG__) ? window.__FB_CONFIG__ : {
+const FIREBASE_CONFIG = (typeof window!=="undefined" && window.__FB_CONFIG__) ? window.__FB_CONFIG__ : {
+  apiKey: "AIzaSyAkgcMUgmRDy_tFcgOO6XftRLzm2154AoA",
+  authDomain: "boardgame-a3c2b.firebaseapp.com",
+  databaseURL: "https://boardgame-a3c2b-default-rtdb.firebaseio.com",
+  projectId: "boardgame-a3c2b",
+  storageBucket: "boardgame-a3c2b.firebasestorage.app",
+  messagingSenderId: "973971875545",
+  appId: "1:973971875545:web:deea3d1369097e8766c0c8"
+};
+
+const FB_ON = !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
+let fb = null;                 // Firestore 함수 모음
+let STORAGE_MODE = "local";    // 'firebase' | 'local' | 'memory'
+const DOC_ID = "main";         // 한 가구가 공유하는 데이터 문서
+
+// 친구 평가 링크 모드 여부 (?rate=<playId> 로 접속하면 평가 전용 화면)
+const URLP = new URLSearchParams(location.search);
+const RATE_MODE = URLP.has("rate");
+
+let HAS_LOCAL = false;
+try{ const t="__bg_test__"; localStorage.setItem(t,"1"); localStorage.removeItem(t); HAS_LOCAL=true; }catch(e){ HAS_LOCAL=false; }
+const mem={};
+const plain = x => JSON.parse(JSON.stringify(x));
+
+async function rawGet(k){
+  if(HAS_LOCAL){ return localStorage.getItem(k); }
+  return (k in mem)?mem[k]:null;
+}
+async function rawSet(k,v){
+  if(HAS_LOCAL){ localStorage.setItem(k,v); return; }
+  mem[k]=v;
+}
+async function sget(k){ try{ const v=await rawGet(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+async function sset(k,v){ try{ await rawSet(k, JSON.stringify(v)); toast(); }catch(e){ console.error("save fail",e); } }
+let state={games:[],plays:[],nicks:[]};
+
+async function initFirebase(){
+  if(!FB_ON) return false;
+  try{
+    let appMod, fs;
+    if(typeof window!=="undefined" && window.__MOCK_FB__){ appMod=window.__MOCK_FB__; fs=window.__MOCK_FB__; }
+    else {
+      appMod = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+      fs     = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    }
+    const app = appMod.initializeApp(FIREBASE_CONFIG);
+    const db  = fs.getFirestore(app);
+    fb = { db, doc:fs.doc, getDoc:fs.getDoc, setDoc:fs.setDoc, onSnapshot:fs.onSnapshot,
+           collection:fs.collection, addDoc:fs.addDoc, getDocs:fs.getDocs, deleteDoc:fs.deleteDoc };
+    return true;
+  }catch(e){ console.warn("Firebase 초기화 실패 → 로컬 저장으로 전환", e); fb=null; return false; }
+}
+
+/* ---------- date normalization ---------- */
+// 다양한 입력(2026.4.14 / 2026-04-14 / 10.18 / 25.01.23)을 YYYY.MM.DD 로 통일.
+// 연도가 없는 값(예: 10.18)은 MM.DD 로 정리하되, 연도 추정이 가능하면 보존.
+function normDate(s){
+  if(s==null) return "";
+  let str=String(s).trim();
+  if(!str) return "";
+  const parts=str.split(/[.\-\/\s]+/).filter(Boolean);
+  const pad=n=>String(n).padStart(2,"0");
+  if(parts.length>=3){
+    let [y,m,d]=parts;
+    if(y.length<=2) y=String(2000+parseInt(y,10));
+    return `${y}.${pad(m)}.${pad(d)}`;
+  }
+  if(parts.length===2){
+    let [a,b]=parts;
+    if(a.length===4 || parseInt(a,10)>1900){ return `${a}.${pad(b)}`; } // YYYY.MM
+    return `${pad(a)}.${pad(b)}`; // MM.DD (연도 미상)
+  }
+  return str;
+}
+// 정렬용 키. 연도 없으면 최근으로 취급하지 않도록 0000 부여.
+function dateKey(s){
+  const n=normDate(s);
+  if(!n) return "0000-00-00";
+  const p=n.split(".");
+  if(p.length>=3) return `${p[0]}-${p[1]}-${p[2]}`;
+  if(p.length===2){
+    if(p[0].length===4) return `${p[0]}-${p[1]}-00`;
+    return `0000-${p[0]}-${p[1]}`;
+  }
+  return "0000-00-00";
+}
+
+async function load(){
+  const fbReady = await initFirebase();
+  if(fbReady){
+    STORAGE_MODE="firebase";
+    const ref = fb.doc(fb.db,"boardgame",DOC_ID);
+    let snap;
+    try{ snap = await fb.getDoc(ref); }catch(e){ snap=null; }
+    if(snap && snap.exists()){
+      const d=snap.data();
+      state={games:d.games||[], plays:d.plays||[], nicks:d.nicks||SEED.nicknames};
+      migrateDates();
+    }else{
+      state={games:SEED.games, plays:SEED.plays, nicks:SEED.nicknames};
+      migrateDates();
+      await fb.setDoc(ref, plain(state));
+    }
+    // 실시간 동기화: 다른 기기에서 바뀌면 자동 반영
+    fb.onSnapshot(ref, s=>{
+      if(s && s.exists()){
+        const d=s.data();
+        state.games=d.games||[]; state.plays=d.plays||[]; state.nicks=d.nicks||state.nicks;
+        migrateDates();
+        if(!RATE_MODE){ renderStats(); renderTab(); }
+      }
+    });
+    subscribePending();
+    return;
+  }
+  // ---- 로컬/메모리 폴백 ----
+  STORAGE_MODE = HAS_LOCAL ? "local" : "memory";
+  const seeded = await sget("bg_seeded_v2");
+  if(!seeded){
+    state = {games:SEED.games, plays:SEED.plays, nicks:SEED.nicknames};
+    migrateDates();
+    await rawSet("bg_seeded_v2","1");
+    await persist(true);
+  }else{
+    state.games = await sget("bg_games") || [];
+    state.plays = await sget("bg_plays") || [];
+    state.nicks = await sget("bg_nicks") || SEED.nicknames;
+    migrateDates();
+  }
+}
+function migrateDates(){
+  (state.games||[]).forEach(g=>{ g.date=normDate(g.date); });
+  (state.plays||[]).forEach(p=>{ p.date=normDate(p.date); });
+}
+async function persist(silent){
+  if(STORAGE_MODE==="firebase" && fb){
+    try{ await fb.setDoc(fb.doc(fb.db,"boardgame",DOC_ID), plain(state)); if(!silent) toast(); }
+    catch(e){ console.error(e); toast("저장 실패"); }
+    return;
+  }
+  try{
+    await rawSet("bg_games", JSON.stringify(state.games));
+    await rawSet("bg_plays", JSON.stringify(state.plays));
+    await rawSet("bg_nicks", JSON.stringify(state.nicks));
+    if(!silent) toast();
+  }catch(e){ console.error(e); }
+}
+/* 친구들이 링크로 남긴 평가(pending_reviews)를 듣고 해당 플레이 기록에 자동 취합 */
+function subscribePending(){
+  if(!fb) return;
+  fb.onSnapshot(fb.collection(fb.db,"pending_reviews"), async snap=>{
+    const docs = snap.docs || [];
+    let merged=0;
+    for(const d of docs){
+      const pr = d.data();
+      if(applyPendingReview(pr)){ merged++; try{ await fb.deleteDoc(d.ref); }catch(e){} }
+    }
+    if(merged){
+      await persist(true);
+      if(!RATE_MODE){ renderStats(); renderTab(); }
+      toast("친구 평가 "+merged+"건 반영됨");
+    }
+  });
+}
+function applyPendingReview(pr){
+  if(!pr || !pr.playId) return false;
+  const p = state.plays.find(x=>x.id===pr.playId);
+  if(!p) return false;                 // 아직 그 기록이 없으면 보류(삭제 안 함)
+  if(!p.reviews) p.reviews=[];
+  const name = (pr.name||"손님").trim();
+  const ex = p.reviews.find(r=>(r.name||"")===name);
+  const base = ex || {name, code:name.slice(0,2).toUpperCase(),
+                      color:NICK_PALETTE[p.reviews.length%NICK_PALETTE.length], winner:false};
+  base.gscore = pr.gscore!=null?pr.gscore:(base.gscore||"");
+  base.score  = (pr.score!=null && pr.score!=="")?Number(pr.score):(base.score??null);
+  base.text   = pr.text!=null?pr.text:(base.text||"");
+  if(!ex) p.reviews.push(base);
+  return true;
+}
+let toastT;
+function toast(msg){ const b=document.getElementById("savebar"); if(!b) return; b.textContent=msg||"저장됨"; b.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>b.classList.remove("show"),1400); }
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const won=n=> n==null?"—":"₩"+n.toLocaleString();
+function nickOf(code){ return state.nicks.find(n=>n.code===code) || {code,name:code,color:"#7C8B72"}; }
+function revName(rv){ if(rv.name&&rv.name.trim()) return rv.name; const n=nickOf(rv.code); return n.name; }
+function revColor(rv){ if(rv.color) return rv.color; const n=nickOf(rv.code); return n.color; }
+function revCode(rv){ const c=(rv.code||revName(rv)||"?").trim(); return c.slice(0,2).toUpperCase(); }
+function stars(score){ if(score==null) return ""; const f=Math.round(score); return "★".repeat(f)+"☆".repeat(Math.max(0,5-f)); }
+
+let activeTab="collection";
+let filter={q:"",status:"all",sort:"recent",players:"all",designer:"all"};
+
+/* ---------- stats ---------- */
+function renderStats(){
+  const owned=state.games.filter(g=>g.owned);
+  const total=owned.reduce((a,g)=>a+(g.price||0),0);
+  $("#stats").innerHTML=`
+    <div class="stat"><div class="n">${owned.length}</div><div class="l">보유 게임</div></div>
+    <div class="stat"><div class="n">${state.games.length}</div><div class="l">전체 구매</div></div>
+    <div class="stat"><div class="n">₩${(total/10000).toFixed(0)}<small style="font-size:13px">만</small></div><div class="l">보유 게임 구매액</div></div>
+    <div class="stat"><div class="n">${state.plays.length}</div><div class="l">플레이 기록</div></div>`;
+}
+
+/* ---------- collection ---------- */
+function playCountFor(name){ return state.plays.filter(p=>(p.name||"").replace(/\s/g,"")===name.replace(/\s/g,"")).length; }
+function allDesigners(){
+  const set=new Set();
+  state.games.forEach(g=>{ if(g.designers) g.designers.split(",").forEach(d=>{ const t=d.trim(); if(t) set.add(t); }); });
+  return [...set].sort((a,b)=>a.localeCompare(b,"en"));
+}
+function matchesPlayers(g, n){
+  if(n==="all") return true;
+  const min=g.pmin, max=g.pmax;
+  if(min==null||max==null) return false;
+  if(n==="5") return max>=5;
+  const k=parseInt(n,10);
+  return min<=k && k<=max;
+}
+function renderCollection(){
+  let list=state.games.slice();
+  if(filter.status==="owned") list=list.filter(g=>g.owned);
+  if(filter.status==="gone") list=list.filter(g=>!g.owned);
+  if(filter.q){ const q=filter.q.toLowerCase(); list=list.filter(g=>(g.name+" "+(g.vendor||"")+" "+(g.designers||"")).toLowerCase().includes(q)); }
+  if(filter.players&&filter.players!=="all") list=list.filter(g=>matchesPlayers(g,filter.players));
+  if(filter.designer&&filter.designer!=="all") list=list.filter(g=>(g.designers||"").includes(filter.designer));
+  if(filter.sort==="recent") list.sort((a,b)=>dateKey(b.date).localeCompare(dateKey(a.date)));
+  else if(filter.sort==="name") list.sort((a,b)=>a.name.localeCompare(b.name,"ko"));
+  else if(filter.sort==="price_d") list.sort((a,b)=>(b.price||0)-(a.price||0));
+  else if(filter.sort==="price_a") list.sort((a,b)=>(a.price||0)-(b.price||0));
+  else if(filter.sort==="weight_d") list.sort((a,b)=>(b.weight??-1)-(a.weight??-1));
+  else if(filter.sort==="weight_a") list.sort((a,b)=>(a.weight??99)-(b.weight??99));
+
+  const cards=list.map(g=>{
+    const pc=playCountFor(g.name);
+    const wt = g.weight!=null? `<span class="bb diff">🎯 난이도 ${Number(g.weight).toFixed(1)}/5</span>`:"";
+    const pl = g.players? `<span class="bb players">👥 ${esc(g.players)}</span>`:"";
+    const de = g.designers? `<div class="gdesigner">✎ ${esc(g.designers)}</div>`:"";
+    return `<div class="gcard ${g.owned?"":"gone"}">
+      <div class="corner"></div>
+      ${g.thumb?`<div class="thumbwrap"><img loading="lazy" src="${esc(g.thumb)}" alt=""></div>`:""}
+      <button class="gname" data-play="${esc(g.name)}" title="클릭하면 이 게임의 플레이 기록을 추가합니다">${esc(g.name)}</button>
+      <div class="gmeta">
+        ${g.vendor?`<span class="tag">${esc(g.vendor)}</span>`:""}
+        ${g.method?`<span class="tag method">${esc(g.method)}</span>`:""}
+      </div>
+      ${de}
+      ${(wt||pl)?`<div class="bgg-badges">${wt}${pl}</div>`:""}
+      <div class="price">${won(g.price)}</div>
+      <div class="gfoot">
+        <div>
+          <div class="date">${esc(g.date||"구매일 미상")}</div>
+          ${pc?`<button class="plays-link" data-game="${esc(g.name)}">기록 ${pc}건 보기</button>`:""}
+          <div style="margin-top:4px">
+            ${g.bggId?`<span class="bgg-tag">BGG 연동됨</span>`:`<button class="bgg-link" data-bgg="${g.id}">＋ BGG 정보 가져오기</button>`}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <span class="badge ${g.owned?"owned":"gone"}">${g.owned?"보유중":"방출"}</span>
+          <div class="row-actions" style="margin-top:6px;justify-content:flex-end">
+            ${g.bggId?`<button class="iconbtn" data-bgg="${g.id}">BGG</button>`:""}
+            <button class="iconbtn" data-edit="${g.id}">수정</button>
+            <button class="iconbtn" data-del="${g.id}">삭제</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const designers=allDesigners();
+  $("#view").innerHTML=`
+    <div class="controls">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="searchInput" placeholder="게임 이름·업체·작가로 검색" value="${esc(filter.q)}">
+      </div>
+      <div class="chips">
+        <button class="fchip" data-status="all" aria-pressed="${filter.status==="all"}">전체</button>
+        <button class="fchip" data-status="owned" aria-pressed="${filter.status==="owned"}">보유중</button>
+        <button class="fchip" data-status="gone" aria-pressed="${filter.status==="gone"}">방출</button>
+      </div>
+      <select id="sortSel" title="정렬">
+        <option value="recent" ${filter.sort==="recent"?"selected":""}>최신 구매순</option>
+        <option value="name" ${filter.sort==="name"?"selected":""}>이름순</option>
+        <option value="price_d" ${filter.sort==="price_d"?"selected":""}>가격 높은순</option>
+        <option value="price_a" ${filter.sort==="price_a"?"selected":""}>가격 낮은순</option>
+        <option value="weight_d" ${filter.sort==="weight_d"?"selected":""}>난이도 높은순</option>
+        <option value="weight_a" ${filter.sort==="weight_a"?"selected":""}>난이도 낮은순</option>
+      </select>
+      <select id="playSel" title="추천 인원">
+        <option value="all" ${filter.players==="all"?"selected":""}>인원 전체</option>
+        <option value="1" ${filter.players==="1"?"selected":""}>1인 가능</option>
+        <option value="2" ${filter.players==="2"?"selected":""}>2인 가능</option>
+        <option value="3" ${filter.players==="3"?"selected":""}>3인 가능</option>
+        <option value="4" ${filter.players==="4"?"selected":""}>4인 가능</option>
+        <option value="5" ${filter.players==="5"?"selected":""}>5인+ 가능</option>
+      </select>
+      <select id="designerSel" title="작가">
+        <option value="all" ${filter.designer==="all"?"selected":""}>작가 전체</option>
+        ${designers.map(d=>`<option value="${esc(d)}" ${filter.designer===d?"selected":""}>${esc(d)}</option>`).join("")}
+      </select>
+      <button class="add" id="addGame">＋ 게임 추가</button>
+      <button class="ghost bgg-bulk" id="bulkBgg">BGG 일괄 연동</button>
+    </div>
+    ${list.length?`<div class="grid">${cards}</div>`:`<div class="empty"><div class="big">조건에 맞는 게임이 없어요</div><div>필터를 바꾸거나 ‘게임 추가’로 새 게임을 등록해 보세요.</div></div>`}`;
+
+  $("#searchInput").oninput=e=>{ filter.q=e.target.value; const p=e.target.selectionStart; renderCollection(); const inp=$("#searchInput"); inp.focus(); inp.setSelectionRange(p,p); };
+  $("#sortSel").onchange=e=>{ filter.sort=e.target.value; renderCollection(); };
+  $("#playSel").onchange=e=>{ filter.players=e.target.value; renderCollection(); };
+  $("#designerSel").onchange=e=>{ filter.designer=e.target.value; renderCollection(); };
+  document.querySelectorAll(".fchip").forEach(c=>c.onclick=()=>{ filter.status=c.dataset.status; renderCollection(); });
+  $("#addGame").onclick=()=>gameModal();
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>gameModal(b.dataset.edit));
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delGame(b.dataset.del));
+  document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>playModal(null, b.dataset.play));
+  document.querySelectorAll("[data-game]").forEach(b=>b.onclick=()=>{ activeTab="plays"; filter.pq=b.dataset.game; renderTab(); });
+  document.querySelectorAll("[data-bgg]").forEach(b=>b.onclick=()=>bggModal(b.dataset.bgg));
+  $("#bulkBgg").onclick=bulkBgg;
+}
+
+/* ---------- plays ---------- */
+function renderPlays(){
+  let list=state.plays.slice().reverse();
+  if(filter.pq){ list=list.filter(p=>(p.name||"").replace(/\s/g,"")===filter.pq.replace(/\s/g,"")); }
+  const cards=list.map(p=>{
+    const revs=(p.reviews||[]).map(rv=>{
+      const nm=revName(rv), col=revColor(rv), code=revCode(rv);
+      const hasText=rv.text&&rv.text.trim();
+      const gs=(rv.gscore!=null&&String(rv.gscore).trim()!=="");
+      return `<div class="rev ${hasText?"":"empty"}">
+        <div class="rev-top">
+          <span class="nick" style="background:${col}">${esc(code)}</span>
+          <span class="nickname">${esc(nm)}${rv.winner?' <span class="winmark" title="승자">🏆</span>':""}</span>
+          ${gs?`<span class="gscore">${esc(String(rv.gscore))}점</span>`:""}
+          ${rv.score!=null?`<span class="score">${rv.score}<small>/5</small></span>`:`<span class="stars">평점 없음</span>`}
+        </div>
+        ${rv.score!=null?`<div class="stars" style="margin:0 0 6px">${stars(rv.score)}</div>`:""}
+        <div class="rev-text">${hasText?esc(rv.text):"한 줄 평 없음"}</div>
+      </div>`;
+    }).join("");
+    const winners=(p.reviews||[]).filter(r=>r.winner).map(r=>revName(r));
+    const winText = winners.length? winners.join(", ") : (p.winner||"");
+    return `<div class="pcard">
+      <div class="phead">
+        <span class="ptitle">${esc(p.name)}</span>
+        <div class="pmeta">
+          ${p.date?`<span class="pm">📅 <b>${esc(p.date)}</b></span>`:""}
+          ${p.players?`<span class="pm">👥 <b>${esc(p.players)}인</b></span>`:""}
+          ${winText?`<span class="win">🏆 ${esc(winText)}</span>`:""}
+          ${p.count?`<span class="cnt">${esc(p.count)}</span>`:""}
+        </div>
+        <div class="spacer" style="flex:1"></div>
+        <div class="row-actions">
+          <button class="iconbtn share" data-share="${p.id}" data-sname="${esc(p.name)}">🔗 평가 링크</button>
+          <button class="iconbtn" data-pedit="${p.id}">수정</button>
+          <button class="iconbtn" data-pdel="${p.id}">삭제</button>
+        </div>
+      </div>
+      <div class="reviews">${revs||'<div class="rev empty"><div class="rev-text">참가자 기록 없음</div></div>'}</div>
+    </div>`;
+  }).join("");
+
+  $("#view").innerHTML=`
+    <div class="controls">
+      ${filter.pq?`<div class="search" style="max-width:none"><span style="font-size:13px;color:var(--muted)">‘${esc(filter.pq)}’ 기록만 보는 중</span></div><button class="fchip" id="clearPq">전체 보기</button>`:`<div style="flex:1;font-size:13px;color:var(--muted)">최근 기록부터 표시됩니다</div>`}
+      <button class="add alt" id="addPlay">＋ 플레이 기록 추가</button>
+    </div>
+    ${list.length?`<div class="plist">${cards}</div>`:`<div class="empty"><div class="big">아직 기록이 없어요</div><div>‘플레이 기록 추가’로 오늘 함께한 게임을 남겨 보세요.</div></div>`}`;
+
+  $("#addPlay").onclick=()=>playModal();
+  if($("#clearPq")) $("#clearPq").onclick=()=>{ filter.pq=null; renderPlays(); };
+  document.querySelectorAll("[data-pedit]").forEach(b=>b.onclick=()=>playModal(b.dataset.pedit));
+  document.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>delPlay(b.dataset.pdel));
+  document.querySelectorAll("[data-share]").forEach(b=>b.onclick=()=>copyShareLink(b.dataset.share, b.dataset.sname));
+}
+
+/* ---------- modals ---------- */
+function openModal(html){ const o=$("#overlay"); o.innerHTML=`<div class="modal">${html}</div>`; o.classList.add("on");
+  o.onclick=e=>{ if(e.target===o) closeModal(); };
+  o.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeModal); }
+function closeModal(){ $("#overlay").classList.remove("on"); $("#overlay").innerHTML=""; }
+
+function gameModal(id){
+  const g = id? state.games.find(x=>x.id===id) : {name:"",vendor:"",method:"",price:"",date:"",owned:true};
+  openModal(`
+    <div class="mhead"><h3>${id?"게임 수정":"게임 추가"}</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="field"><label>게임 이름 *</label><input id="f_name" value="${esc(g.name)}" placeholder="예) 에버델"></div>
+      <div class="two">
+        <div class="field"><label>구매처 / 업체</label><input id="f_vendor" value="${esc(g.vendor)}" placeholder="예) 딜라이트"></div>
+        <div class="field"><label>구매 방법</label><input id="f_method" value="${esc(g.method)}" placeholder="예) 펀딩, 중고"></div>
+      </div>
+      <div class="two">
+        <div class="field"><label>구매 가격 (원)</label><input id="f_price" type="number" value="${g.price??""}" placeholder="29000"></div>
+        <div class="field"><label>구매일</label><input id="f_date" value="${esc(g.date)}" placeholder="2026.06.28"></div>
+      </div>
+      <div class="field"><label>보유 상태</label>
+        <select id="f_owned"><option value="1" ${g.owned?"selected":""}>보유중</option><option value="0" ${!g.owned?"selected":""}>방출(처분/양도)</option></select>
+      </div>
+    </div>
+    <div class="mfoot"><button class="btn cancel" data-close>취소</button>${id?`<button class="btn bgg" id="bggFromEdit">BGG에서 가져오기</button>`:""}<button class="btn save" id="saveGame">저장</button></div>`);
+  if(id&&$("#bggFromEdit")) $("#bggFromEdit").onclick=()=>{ closeModal(); bggModal(id); };
+  $("#saveGame").onclick=async()=>{
+    const name=$("#f_name").value.trim(); if(!name){ $("#f_name").focus(); return; }
+    const data={name, vendor:$("#f_vendor").value.trim(), method:$("#f_method").value.trim(),
+      price:$("#f_price").value?parseInt($("#f_price").value):null, date:normDate($("#f_date").value.trim()),
+      owned:$("#f_owned").value==="1"};
+    if(id){ Object.assign(state.games.find(x=>x.id===id),data); }
+    else { state.games.push({id:"g"+Date.now(), ...data, disposal:data.owned?"":"방출"}); }
+    await persist(); closeModal(); renderStats(); renderTab();
+  };
+}
+function delGame(id){ const g=state.games.find(x=>x.id===id);
+  if(confirm(`‘${g.name}’ 을(를) 목록에서 삭제할까요?`)){ state.games=state.games.filter(x=>x.id!==id); persist(); renderStats(); renderCollection(); } }
+
+let draftReviews=[];
+function makeParticipant(src){
+  // src: a nick object, or a name string, or existing review
+  if(typeof src==="string"){
+    const code=src.trim().slice(0,2).toUpperCase()||"?";
+    return {code, name:src.trim(), color:NICK_PALETTE[draftReviews.length%NICK_PALETTE.length], gscore:"", score:null, text:"", winner:false};
+  }
+  return {
+    code: src.code || revCode(src),
+    name: src.name || (nickOf(src.code).name),
+    color: src.color || revColor(src),
+    gscore: src.gscore??"", score: src.score??null, text: src.text||"", winner: !!src.winner
+  };
+}
+function playModal(id, presetName){
+  const p = id? state.plays.find(x=>x.id===id)
+              : {name:presetName||"", date:normDate(new Date().toISOString().slice(0,10)), players:"", count:"", reviews:[]};
+  draftReviews = (p.reviews&&p.reviews.length)? JSON.parse(JSON.stringify(p.reviews)).map(makeParticipant) : [];
+  // 보유/미보유 모두 자동완성에 노출 (미보유 게임 기록도 가능: 자유 입력)
+  const gameOpts = state.games.map(g=>`<option value="${esc(g.name)}">`).join("");
+  openModal(`
+    <div class="mhead"><h3>${id?"플레이 기록 수정":"플레이 기록 추가"}</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="field"><label>게임 *</label><input id="p_name" list="gamelist" value="${esc(p.name)}" placeholder="보유 게임에서 고르거나 직접 입력 (없는 게임도 가능)">
+        <datalist id="gamelist">${gameOpts}</datalist>
+        <div class="hint">목록에 없는 게임도 그냥 이름을 입력하면 기록됩니다.</div></div>
+      <div class="two">
+        <div class="field"><label>플레이 날짜</label><input id="p_date" value="${esc(p.date)}" placeholder="2026.06.28"></div>
+        <div class="field"><label>인원수</label><input id="p_players" value="${esc(p.players)}" placeholder="자동(참가자 수)"></div>
+      </div>
+      <div class="field"><label>플레이 횟수 메모</label><input id="p_count" value="${esc(p.count)}" placeholder="예) 초플, 2회플, 확장 첫 플"></div>
+
+      <label style="font-size:13px;color:var(--muted);display:block;margin:10px 0 6px">참가자별 게임 점수 · 평점 · 한 줄 평</label>
+      <div class="nickchips" id="nickChips"></div>
+      <div id="revWrap"></div>
+      <button class="addnick" id="addNick">＋ 새 참가자 직접 추가</button>
+    </div>
+    <div class="mfoot"><button class="btn cancel" data-close>취소</button><button class="btn save" id="savePlay">저장</button></div>`);
+  renderNickChips();
+  renderDraftReviews();
+  $("#addNick").onclick=()=>{
+    const name=prompt("참가자 이름/닉네임을 입력하세요 (예: 민수)"); if(!name||!name.trim()) return;
+    addParticipantByName(name.trim());
+  };
+  $("#savePlay").onclick=async()=>{
+    const name=$("#p_name").value.trim(); if(!name){ $("#p_name").focus(); return; }
+    collectDraft();
+    const reviews=draftReviews.filter(r=>(r.name&&r.name.trim()) || r.score!=null || (r.text&&r.text.trim()) || (r.gscore!=null&&String(r.gscore).trim()!==""));
+    const playersField=$("#p_players").value.trim() || (reviews.length? String(reviews.length):"");
+    const data={name, date:normDate($("#p_date").value.trim()), players:playersField,
+      winner:"", count:$("#p_count").value.trim(), reviews};
+    if(id){ Object.assign(state.plays.find(x=>x.id===id),data); }
+    else { state.plays.push({id:"p"+Date.now(), ...data}); }
+    await persist(); closeModal(); renderStats(); renderTab();
+  };
+}
+function addParticipantByName(name){
+  const code=name.slice(0,2).toUpperCase();
+  // 기억된 닉네임이면 그 색/코드 사용, 아니면 새로 기억
+  let nick=state.nicks.find(n=>n.name===name);
+  if(!nick){
+    nick={code, name, color:NICK_PALETTE[state.nicks.length%NICK_PALETTE.length]};
+    state.nicks.push(nick); persist(true);
+  }
+  if(!draftReviews.find(r=>r.name===name)) draftReviews.push(makeParticipant(nick));
+  renderNickChips(); renderDraftReviews();
+}
+function renderNickChips(){
+  const wrap=$("#nickChips"); if(!wrap) return;
+  const used=new Set(draftReviews.map(r=>r.name));
+  const chips=state.nicks.filter(n=>!used.has(n.name)).map(n=>
+    `<button class="nickchip" data-add="${esc(n.name)}"><span class="dot" style="background:${n.color}"></span>${esc(n.name)}</button>`).join("");
+  wrap.innerHTML = chips || `<span class="hint">아래 ‘새 참가자 직접 추가’로 함께한 사람을 등록하세요.</span>`;
+  wrap.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addParticipantByName(b.dataset.add));
+}
+function renderDraftReviews(){
+  $("#revWrap").innerHTML=draftReviews.map((r,i)=>{
+    const code=(r.code||revCode(r));
+    return `<div class="revblock">
+      <div class="rh">
+        <span class="nick" style="background:${r.color}">${esc(code)}</span>
+        <input class="pname" data-name="${i}" value="${esc(r.name)}" placeholder="이름/닉네임">
+        <button class="wintog ${r.winner?"on":""}" data-win="${i}" title="승자로 표시">🏆</button>
+        <button class="rm" data-rm="${i}">제거</button>
+      </div>
+      <div class="prow">
+        <label class="minlbl">게임 점수<input class="gscore" data-gscore="${i}" value="${esc(r.gscore??"")}" placeholder="예) 98 또는 98:86"></label>
+        <div class="scorerow"><span class="minlbl">평점</span>
+          <input type="range" min="0" max="5" step="0.1" value="${r.score??0}" data-score="${i}">
+          <span class="scoreval" id="sv${i}">${r.score!=null?r.score:"–"}</span>
+        </div>
+      </div>
+      <textarea data-text="${i}" placeholder="한 줄 평">${esc(r.text)}</textarea>
+    </div>`;
+  }).join("");
+  document.querySelectorAll("[data-name]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.name].name=e.target.value; });
+  document.querySelectorAll("[data-gscore]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.gscore].gscore=e.target.value; });
+  document.querySelectorAll("[data-score]").forEach(el=>el.oninput=e=>{ const i=+e.target.dataset.score; const v=parseFloat(e.target.value); draftReviews[i].score=v; $("#sv"+i).textContent=v; });
+  document.querySelectorAll("[data-text]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.text].text=e.target.value; });
+  document.querySelectorAll("[data-win]").forEach(el=>el.onclick=e=>{ const i=+e.currentTarget.dataset.win; draftReviews[i].winner=!draftReviews[i].winner; collectDraft(); renderDraftReviews(); });
+  document.querySelectorAll("[data-rm]").forEach(el=>el.onclick=e=>{ collectDraft(); draftReviews.splice(+e.target.dataset.rm,1); renderNickChips(); renderDraftReviews(); });
+}
+function collectDraft(){
+  document.querySelectorAll("[data-name]").forEach(el=>{ draftReviews[+el.dataset.name].name=el.value; });
+  document.querySelectorAll("[data-gscore]").forEach(el=>{ draftReviews[+el.dataset.gscore].gscore=el.value; });
+  document.querySelectorAll("[data-text]").forEach(el=>{ draftReviews[+el.dataset.text].text=el.value; });
+}
+function delPlay(id){ const p=state.plays.find(x=>x.id===id);
+  if(confirm(`‘${p.name}’ 플레이 기록을 삭제할까요?`)){ state.plays=state.plays.filter(x=>x.id!==id); persist(); renderStats(); renderPlays(); } }
+
+/* ---------- tabs ---------- */
+function renderTab(){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.tab===activeTab));
+  if(activeTab==="collection"){ filter.pq=null; renderCollection(); } else renderPlays();
+}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ activeTab=t.dataset.tab; renderTab(); });
+
+/* ---------- BoardGameGeek integration ---------- */
+// BGG has no CORS, so we route through a public CORS proxy.
+// These work when the page is hosted normally; inside the claude.ai
+// preview sandbox outbound calls may be blocked — host the file yourself
+// (Netlify Drop / GitHub Pages) for reliable use.
+const PROXIES = [
+  u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),
+  u=>"https://corsproxy.io/?url="+encodeURIComponent(u),
+];
+async function bggFetch(url){
+  let lastErr;
+  for(const wrap of PROXIES){
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        const res=await fetch(wrap(url));
+        if(res.status===202){ await sleep(1500); continue; } // BGG queued, retry
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const txt=await res.text();
+        if(!txt||txt.indexOf("<")===-1) throw new Error("빈 응답");
+        const xml=new DOMParser().parseFromString(txt,"text/xml");
+        if(xml.querySelector("parsererror")) throw new Error("XML 파싱 실패");
+        return xml;
+      }catch(e){ lastErr=e; await sleep(500); }
+    }
+  }
+  throw lastErr||new Error("요청 실패");
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function bggSearch(name){
+  const xml=await bggFetch("https://boardgamegeek.com/xmlapi2/search?type=boardgame&query="+encodeURIComponent(name));
+  return [...xml.querySelectorAll("item")].slice(0,8).map(it=>({
+    id: it.getAttribute("id"),
+    name: (it.querySelector('name')||{}).getAttribute?.("value") || name,
+    year: (it.querySelector("yearpublished")||{}).getAttribute?.("value") || ""
+  }));
+}
+async function bggThings(ids){
+  const xml=await bggFetch("https://boardgamegeek.com/xmlapi2/thing?stats=1&id="+ids.join(","));
+  return [...xml.querySelectorAll("item")].map(parseThing);
+}
+function parseThing(it){
+  const val=(sel,a="value")=>{ const e=it.querySelector(sel); return e?e.getAttribute(a):null; };
+  const names=[...it.querySelectorAll("name")];
+  const primary=(names.find(n=>n.getAttribute("type")==="primary")||names[0]);
+  // designers (작가)
+  const designers=[...it.querySelectorAll('link[type="boardgamedesigner"]')]
+    .map(l=>l.getAttribute("value")).filter(Boolean);
+  // suggested player count poll
+  let best=[],rec=[];
+  const poll=it.querySelector('poll[name="suggested_numplayers"]');
+  if(poll){
+    poll.querySelectorAll("results").forEach(r=>{
+      const np=r.getAttribute("numplayers");
+      const v={};
+      r.querySelectorAll("result").forEach(x=>v[x.getAttribute("value")]=+x.getAttribute("numvotes"));
+      const b=v["Best"]||0, re=v["Recommended"]||0, no=v["Not Recommended"]||0;
+      if(b>=re && b>no && b>0) best.push(np);
+      else if((b+re)>no && (b+re)>0) rec.push(np);
+    });
+  }
+  const mn=val("minplayers"), mx=val("maxplayers");
+  let players="";
+  if(best.length) players="베스트 "+best.join(",")+"인";
+  else if(rec.length) players="추천 "+rec.join(",")+"인";
+  else if(mn&&mx) players=mn+"–"+mx+"인";
+  const wRaw=val("statistics > ratings > averageweight") || val("averageweight");
+  return {
+    id: it.getAttribute("id"),
+    name: primary?primary.getAttribute("value"):"",
+    year: val("yearpublished")||"",
+    thumb: (it.querySelector("thumbnail")||{}).textContent||"",
+    image: (it.querySelector("image")||{}).textContent||"",
+    weight: wRaw?parseFloat(wRaw):null,
+    designers: designers.length?designers.join(", "):"",
+    pmin: mn?parseInt(mn,10):null,
+    pmax: mx?parseInt(mx,10):null,
+    players
+  };
+}
+function applyBgg(game, t){
+  game.bggId=t.id; game.thumb=t.thumb; game.image=t.image;
+  game.weight=t.weight; game.players=t.players; game.bggYear=t.year;
+  game.designers=t.designers; game.pmin=t.pmin; game.pmax=t.pmax;
+}
+
+async function bggModal(gid){
+  const g=state.games.find(x=>x.id===gid);
+  openModal(`
+    <div class="mhead"><h3>BGG 정보 가져오기</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="bgg-note">‘${esc(g.name)}’ 와 일치하는 BoardGameGeek 항목을 골라 주세요. 한글 이름은 잘 안 잡히므로, 결과가 없으면 <b>영어 원제</b>로 바꿔서 다시 검색해 보세요. 선택하면 그림·무게·추천 인원이 자동으로 채워집니다.</div>
+      <div class="field" style="display:flex;gap:8px;margin-bottom:12px">
+        <input id="bgg_q" value="${esc(g.name)}" placeholder="예) Everdell" style="flex:1">
+        <button class="btn bgg" id="bgg_go" style="white-space:nowrap">검색</button>
+      </div>
+      <div id="bgg_results"><div class="statemsg">검색어를 입력하고 ‘검색’을 누르세요.</div></div>
+    </div>
+    <div class="mfoot">${g.bggId?`<button class="btn cancel" id="bgg_unlink">연동 해제</button>`:""}<button class="btn cancel" data-close>닫기</button></div>`);
+  const run=async()=>{
+    const q=$("#bgg_q").value.trim(); if(!q) return;
+    $("#bgg_results").innerHTML=`<div class="statemsg"><span class="spin"></span> BGG에서 검색 중…</div>`;
+    try{
+      const hits=await bggSearch(q);
+      if(!hits.length){ $("#bgg_results").innerHTML=`<div class="statemsg">검색 결과가 없어요. 영어 원제로 다시 검색해 보세요.</div>`; return; }
+      const details=await bggThings(hits.map(h=>h.id));
+      const dmap={}; details.forEach(d=>dmap[d.id]=d);
+      $("#bgg_results").innerHTML=hits.map(h=>{
+        const d=dmap[h.id]||{};
+        return `<button class="cand" data-pick="${h.id}">
+          <img loading="lazy" src="${esc(d.thumb||"")}" alt="">
+          <div class="ci"><div class="cn">${esc(d.name||h.name)}</div>
+          <div class="cm">${h.year?h.year+" · ":""}${d.weight?"난이도 "+d.weight.toFixed(1)+" · ":""}${esc(d.players||"")}${d.designers?" · "+esc(d.designers):""}</div></div>
+        </button>`;
+      }).join("");
+      document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=async()=>{
+        applyBgg(g, dmap[b.dataset.pick]); await persist(); closeModal(); renderStats(); renderCollection(); toast("BGG 정보 연동 완료");
+      });
+    }catch(e){
+      $("#bgg_results").innerHTML=`<div class="statemsg">가져오기에 실패했어요. (${esc(e.message)})<br>이 미리보기 화면에서는 외부 연결이 막힐 수 있어요. 파일을 직접 호스팅한 버전에서 시도해 보세요.</div>`;
+    }
+  };
+  $("#bgg_go").onclick=run;
+  $("#bgg_q").onkeydown=e=>{ if(e.key==="Enter") run(); };
+  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","bggYear"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderCollection(); };
+  run();
+}
+
+async function bulkBgg(){
+  const targets=state.games.filter(g=>g.owned && !g.bggId);
+  if(!targets.length){ alert("연동할 게임이 없어요. (보유 게임은 모두 연동되었거나 없음)"); return; }
+  if(!confirm(`보유 게임 중 미연동 ${targets.length}개를 자동 연동합니다.\n한글 이름은 매칭이 안 될 수 있고, BGG 속도 제한 때문에 시간이 걸려요. 진행할까요?`)) return;
+  let done=0, ok=0, fail=0;
+  const view=$("#view");
+  const bar=document.createElement("div"); bar.className="bggbar";
+  bar.innerHTML=`<span id="bgg_stat"></span><div class="progress"><i id="bgg_pi"></i></div><button class="fchip" id="bgg_stop">중단</button>`;
+  view.prepend(bar);
+  let stop=false; $("#bgg_stop").onclick=()=>{ stop=true; };
+  for(const g of targets){
+    if(stop) break;
+    $("#bgg_stat").innerHTML=`<span class="spin"></span> ${esc(g.name)} (${done+1}/${targets.length})`;
+    try{
+      const hits=await bggSearch(g.name);
+      if(hits.length){
+        const det=await bggThings([hits[0].id]);
+        if(det[0]){ applyBgg(g, det[0]); ok++; }
+      } else fail++;
+    }catch(e){ fail++; if(done===0){ $("#bgg_stat").innerHTML="연결 실패 — 이 미리보기에서는 외부 호출이 막힐 수 있어요. 호스팅한 버전에서 시도하세요."; await sleep(1800); break; } }
+    done++;
+    $("#bgg_pi").style.width=(done/targets.length*100)+"%";
+    await persist(true);
+    await sleep(1300); // respect BGG rate limit
+  }
+  await persist(true);
+  bar.remove(); renderStats(); renderCollection();
+  toast(`완료 · 연동 ${ok}개 / 실패 ${fail}개`);
+}
+
+
+$("#exportBtn").onclick=()=>{
+  const blob=new Blob([JSON.stringify({games:state.games,plays:state.plays,nicks:state.nicks},null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="boardgame_backup.json"; a.click();
+};
+$("#importBtn").onclick=()=>$("#fileInput").click();
+$("#fileInput").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=async()=>{ try{ const d=JSON.parse(r.result);
+      if(d.games) state.games=d.games; if(d.plays) state.plays=d.plays; if(d.nicks) state.nicks=d.nicks;
+      migrateDates(); await persist(); renderStats(); renderTab(); toast("불러오기 완료");
+    }catch(err){ alert("파일을 읽을 수 없습니다. 백업 JSON 파일인지 확인해 주세요."); } };
+  r.readAsText(f);
+};
+
+function setStorageBadge(){
+  const el=document.getElementById("storageMode"); if(!el) return;
+  const label = STORAGE_MODE==="firebase" ? "동기화됨 (Firebase)"
+              : STORAGE_MODE==="local" ? "이 브라우저에 저장됨"
+              : "임시 저장 (저장 안 됨)";
+  const color = STORAGE_MODE==="firebase" ? "#8FD3A8"
+              : STORAGE_MODE==="local" ? "#BFD8C7" : "#E0A14E";
+  el.innerHTML = `<span class="sd" style="background:${color}"></span>${label}`;
+}
+
+/* ---------- 친구 평가 전용 페이지 (?rate=<playId>&g=<게임명>) ---------- */
+function shareLink(playId, gameName){
+  const base = location.origin + location.pathname;
+  return `${base}?rate=${encodeURIComponent(playId)}&g=${encodeURIComponent(gameName||"")}`;
+}
+async function copyShareLink(playId, gameName){
+  const url = shareLink(playId, gameName);
+  try{ await navigator.clipboard.writeText(url); toast(STORAGE_MODE==="firebase"?"평가 링크 복사됨":"링크 복사됨 · 동기화하려면 Firebase 설정 필요"); }
+  catch(e){ prompt("이 링크를 친구에게 보내세요:", url); }
+}
+async function initRatePage(){
+  document.body.classList.add("rate-mode");
+  const playId = URLP.get("rate");
+  const game = URLP.get("g") || "보드게임";
+  const ready = await initFirebase();
+  const view = document.getElementById("view");
+  if(!ready){
+    view.innerHTML = `<div class="ratewrap"><div class="ratecard">
+      <div class="rk">${esc(game)}</div>
+      <p class="rmsg">이 평가 링크는 호스트가 Firebase 동기화를 설정해야 작동해요. 호스트에게 알려주세요.</p>
+    </div></div>`;
+    return;
+  }
+  view.innerHTML = `<div class="ratewrap"><div class="ratecard">
+    <div class="reyebrow">플레이 평가 남기기</div>
+    <div class="rk">${esc(game)}</div>
+    <div class="field"><label>이름 / 닉네임</label><input id="r_name" placeholder="예) 민수"></div>
+    <div class="field"><label>게임 점수 (선택)</label><input id="r_g" placeholder="예) 98 또는 98:86"></div>
+    <div class="field"><label>평점</label>
+      <div class="scorerow"><input id="r_s" type="range" min="0" max="5" step="0.1" value="4"><span class="scoreval" id="r_sv">4</span></div>
+    </div>
+    <div class="field"><label>한 줄 평</label><textarea id="r_t" placeholder="짧게 한 줄 남겨주세요"></textarea></div>
+    <button class="add" id="r_submit" style="width:100%">평가 제출</button>
+    <div class="rmsg" id="r_done" style="display:none">고마워요! 평가가 호스트에게 전달됐어요. 한 번 더 남기려면 새로고침하세요.</div>
+  </div></div>`;
+  const sv=document.getElementById("r_s");
+  sv.oninput=()=>document.getElementById("r_sv").textContent=sv.value;
+  document.getElementById("r_submit").onclick=async()=>{
+    const name=document.getElementById("r_name").value.trim();
+    if(!name){ document.getElementById("r_name").focus(); return; }
+    const payload={ playId, game, name,
+      gscore:document.getElementById("r_g").value.trim(),
+      score:parseFloat(document.getElementById("r_s").value),
+      text:document.getElementById("r_t").value.trim(), ts:Date.now() };
+    try{
+      await fb.addDoc(fb.collection(fb.db,"pending_reviews"), payload);
+      document.querySelector(".ratecard").innerHTML =
+        `<div class="reyebrow">제출 완료</div><div class="rk">${esc(game)}</div>
+         <p class="rmsg">고마워요, ${esc(name)}님! 평가가 호스트에게 전달됐어요.</p>`;
+    }catch(e){ alert("제출에 실패했어요: "+e.message); }
+  };
+}
+
+/* ---------- init ---------- */
+(async function(){
+  if(RATE_MODE){ await initRatePage(); return; }
+  await load(); setStorageBadge(); renderStats(); renderTab();
+})();
+</script>
+<!--
+  ============================================================================
+  Firebase 동기화 설정 방법 (선택)
+  ----------------------------------------------------------------------------
+  1) https://console.firebase.google.com 에서 프로젝트 생성 → 웹 앱 추가
+  2) "Cloud Firestore" 데이터베이스 생성
+  3) 프로젝트 설정에서 보이는 config 객체를 위쪽 FIREBASE_CONFIG 에 붙여넣기
+  4) 이 파일을 GitHub Pages 등에 올리면 같은 데이터가 모든 기기에서 동기화됩니다.
+
+  Firestore 보안 규칙 예시 (개인/가족용 최소 설정):
+  ----------------------------------------------------------------------------
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{db}/documents {
+      // 본인 데이터: 운영 중에는 로그인(Auth) 기반으로 제한하는 것을 권장.
+      match /boardgame/{docId} {
+        allow read, write: if true;   // ← 데모용. 실제로는 request.auth 로 제한하세요.
+      }
+      // 친구 평가: 누구나 "추가"만 가능, 읽기/수정/삭제는 호스트만.
+      match /pending_reviews/{id} {
+        allow create: if true;
+        allow read, delete: if true;  // ← 데모용. 호스트만 읽기/삭제하도록 제한 권장.
+        allow update: if false;
+      }
+    }
+  }
+  주의: allow ... if true 는 누구나 접근 가능합니다. 공개 배포 시에는 Firebase
+  Authentication(익명/구글 로그인 등)으로 본인 데이터 쓰기를 제한하세요.
+  ============================================================================
+-->
