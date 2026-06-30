@@ -60,6 +60,9 @@ button{font-family:inherit;cursor:pointer}
 .actbtn.bulk:hover{filter:brightness(1.05)}
 body.plays-only .tabacts{display:none}
 .pfilters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pfilters>input.pfilter-search{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
+  border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;outline:none;min-width:150px}
+.pfilters>input.pfilter-search:focus{border-color:var(--felt)}
 .namegate{max-width:440px;margin:30px auto;background:var(--card);border:1px solid var(--line);
   border-radius:18px;box-shadow:var(--shadow);padding:26px 24px;text-align:center}
 .namegate .ng-title{font-family:"Jua";font-size:19px;color:var(--ink);margin-bottom:8px}
@@ -267,6 +270,17 @@ body.plays-only .tabs{pointer-events:none}
 .wintog.on{filter:none;opacity:1;border-color:var(--gold);background:#FBF1D8}
 .revblock .rm{color:var(--muted);font-size:12px;background:none;border:0;padding:4px 6px}
 .revblock .rm:hover{color:var(--gone)}
+.revblock .rh .nickcode{width:auto;min-width:30px;max-width:70px;height:26px;border-radius:9px;color:#fff;
+  font-family:"Jua";font-size:12px;text-align:center;border:0;outline:none;padding:0 7px;flex:0 0 auto;
+  text-shadow:0 1px 1px rgba(0,0,0,.28)}
+.revblock .rh .nickcode::placeholder{color:rgba(255,255,255,.7)}
+.newnick{margin-top:10px;background:#fff;border:1.5px dashed var(--line);border-radius:11px;padding:12px;
+  flex-direction:column;gap:8px}
+.newnick input{font:inherit;font-size:14px;color:var(--ink);background:#fff;border:1.5px solid var(--line);
+  border-radius:9px;padding:9px 11px;outline:none;width:100%}
+.newnick input:focus{border-color:var(--felt)}
+.newnick-act{display:flex;gap:8px}
+.newnick-act .btn{flex:1}
 .prow{display:flex;gap:12px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
 .minlbl{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .revblock .revtext{display:block;width:100%;box-sizing:border-box;min-height:64px;
@@ -408,7 +422,7 @@ body.rate-mode .hero{padding-bottom:20px}
   .controls>select{flex:1 1 calc(50% - 4px);min-width:0}
   .controls .add{flex:1 1 100%;text-align:center}
   .pfilters{width:100%;gap:6px}
-  .pfilters>select{flex:1 1 calc(50% - 3px);min-width:0}
+  .pfilters>select,.pfilters>input.pfilter-search{flex:1 1 calc(50% - 3px);min-width:0}
   .pfilters>#playYmSel{flex:1 1 100%}
 
   .grid2{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -819,7 +833,7 @@ function renderCollection(){
     <div class="controls">
       <div class="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input id="searchInput" placeholder="게임 이름·업체로 검색" value="${esc(filter.q)}">
+        <input id="searchInput" lang="ko" placeholder="게임 이름·업체로 검색" value="${esc(filter.q)}">
       </div>
       <div class="chips">
         <button class="fchip" data-status="all" aria-pressed="${filter.status==="all"}">전체</button>
@@ -903,11 +917,11 @@ function gameDetail(id){
         <div class="drow"><span>플레이 수 · 1회당 비용</span><b>${pc}회 · ${perPlay}</b></div>
       </section>
       <section class="dsec"><h4>슬리브</h4>
-        <textarea id="d_sleeve" class="sleeve-in" placeholder="슬리브 사이즈·수량을 적어두세요 (예: 56×87 100매, 65×90 50매)">${esc(g.sleeve||"")}</textarea>
+        <textarea id="d_sleeve" lang="ko" class="sleeve-in" placeholder="슬리브 사이즈·수량을 적어두세요 (예: 56×87 100매, 65×90 50매)">${esc(g.sleeve||"")}</textarea>
         <button class="btn save" id="d_sleeve_save" style="margin-top:8px">슬리브 저장</button>
       </section>
       <section class="dsec"><h4>메모</h4>
-        <textarea id="d_memo" class="sleeve-in" placeholder="유의점·하우스룰·구성품 메모 등을 적어두세요">${esc(g.memo||"")}</textarea>
+        <textarea id="d_memo" lang="ko" class="sleeve-in" placeholder="유의점·하우스룰·구성품 메모 등을 적어두세요">${esc(g.memo||"")}</textarea>
         <button class="btn save" id="d_memo_save" style="margin-top:8px">메모 저장</button>
       </section>
     </div>
@@ -1016,7 +1030,11 @@ function renderPlays(){
   if(filter.pq){ list=list.filter(p=>(p.name||"").replace(/\s/g,"")===filter.pq.replace(/\s/g,"")); }
   if(viewerMode){ list=list.filter(p=>(p.reviews||[]).some(r=>revName(r)===viewerName)); }
   if(!PLAYS_ONLY){
-    if(playFilter.game!=="all") list=list.filter(p=>p.name===playFilter.game);
+    if(playFilter.game!=="all"){
+      const q=playFilter.game;
+      const exact = state.plays.some(p=>p.name===q);
+      list=list.filter(p=> exact ? p.name===q : (p.name||"").includes(q));
+    }
     if(playFilter.person!=="all") list=list.filter(p=>(p.reviews||[]).some(r=>revName(r)===playFilter.person));
     if(playFilter.ym!=="all") list=list.filter(p=>dateKey(p.date).slice(0,7)===playFilter.ym);
   }
@@ -1077,7 +1095,7 @@ function renderPlays(){
           <div class="ng-title">내 이름을 입력해 주세요</div>
           <div class="ng-desc">기록에 적힌 본인 이름을 입력하면, 본인이 참여한 플레이만 모아서 보여드려요. 참여하지 않은 게임은 보이지 않습니다.</div>
           <div class="ng-row">
-            <input id="viewerInput" placeholder="예) 김나영" autocomplete="off">
+            <input id="viewerInput" lang="ko" placeholder="예) 김나영" autocomplete="off">
             <button class="btn save" id="viewerGo">확인</button>
           </div>
         </div>`;
@@ -1087,10 +1105,9 @@ function renderPlays(){
     const ymLabel=k=>k.slice(0,4)+"."+k.slice(5,7);
     controls=`
       <div class="pfilters">
-        <select id="playGameSel" title="게임별">
-          <option value="all" ${playFilter.game==="all"?"selected":""}>게임 전체</option>
-          ${gameNames.map(n=>`<option value="${esc(n)}" ${playFilter.game===n?"selected":""}>${esc(n)}</option>`).join("")}
-        </select>
+        <input id="playGameSel" list="playGameList" lang="ko" class="pfilter-search" autocomplete="off"
+          placeholder="게임 검색 (전체)" value="${playFilter.game==="all"?"":esc(playFilter.game)}">
+        <datalist id="playGameList">${gameNames.map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
         <select id="playPersonSel" title="참여자별">
           <option value="all" ${playFilter.person==="all"?"selected":""}>참여자 전체</option>
           ${persons.map(n=>`<option value="${esc(n)}" ${playFilter.person===n?"selected":""}>${esc(n)}</option>`).join("")}
@@ -1114,7 +1131,12 @@ function renderPlays(){
     $("#viewerInput").addEventListener("keydown",e=>{ if(e.key==="Enter") apply(); });
   }
   if($("#viewerChange")) $("#viewerChange").onclick=()=>{ viewerName=null; renderPlays(); };
-  if($("#playGameSel")) $("#playGameSel").onchange=e=>{ playFilter.game=e.target.value; renderPlays(); };
+  if($("#playGameSel")){
+    const gsel=$("#playGameSel");
+    const applyGame=()=>{ const v=(gsel.value||"").trim(); playFilter.game = v===""?"all":v; renderPlays(); };
+    gsel.addEventListener("change", applyGame);
+    gsel.addEventListener("keydown", e=>{ if(e.key==="Enter") applyGame(); });
+  }
   if($("#playPersonSel")) $("#playPersonSel").onchange=e=>{ playFilter.person=e.target.value; renderPlays(); };
   if($("#playYmSel")) $("#playYmSel").onchange=e=>{ playFilter.ym=e.target.value; renderPlays(); };
   if($("#playClear")) $("#playClear").onclick=()=>{ playFilter={game:"all",person:"all",ym:"all"}; renderPlays(); };
@@ -1143,10 +1165,10 @@ function gameModal(id){
   openModal(`
     <div class="mhead"><h3>${id?"게임 수정":"게임 추가"}</h3><button class="x" data-close>×</button></div>
     <div class="mbody">
-      <div class="field"><label>게임 이름 *</label><input id="f_name" value="${esc(g.name)}" placeholder="예) 에버델"></div>
+      <div class="field"><label>게임 이름 *</label><input id="f_name" lang="ko" value="${esc(g.name)}" placeholder="예) 에버델"></div>
       <div class="two">
-        <div class="field"><label>구매처 / 업체</label><input id="f_vendor" value="${esc(g.vendor)}" placeholder="예) 딜라이트"></div>
-        <div class="field"><label>구매 방법</label><input id="f_method" value="${esc(g.method)}" placeholder="예) 펀딩, 중고"></div>
+        <div class="field"><label>구매처 / 업체</label><input id="f_vendor" lang="ko" value="${esc(g.vendor)}" placeholder="예) 딜라이트"></div>
+        <div class="field"><label>구매 방법</label><input id="f_method" lang="ko" value="${esc(g.method)}" placeholder="예) 펀딩, 중고"></div>
       </div>
       <div class="two">
         <div class="field"><label>구매 가격 (원)</label><input id="f_price" type="number" value="${g.price??""}" placeholder="29000"></div>
@@ -1160,8 +1182,8 @@ function gameModal(id){
         </select>
       </div>
       <div class="field"><label>표지 이미지 URL (선택 · BGG 대신 직접 지정)</label><input id="f_thumb" value="${esc(g.thumb||"")}" placeholder="https://...jpg"></div>
-      <div class="field"><label>슬리브 메모 (선택)</label><input id="f_sleeve" value="${esc(g.sleeve||"")}" placeholder="예) 56×87 100매"></div>
-      <div class="field"><label>게임 메모 (선택 · 유의점·하우스룰 등)</label><textarea id="f_memo" class="sleeve-in" placeholder="예) 2인은 변형 룰 추천 / 구성품 ○○ 빠짐">${esc(g.memo||"")}</textarea></div>
+      <div class="field"><label>슬리브 메모 (선택)</label><input id="f_sleeve" lang="ko" value="${esc(g.sleeve||"")}" placeholder="예) 56×87 100매"></div>
+      <div class="field"><label>게임 메모 (선택 · 유의점·하우스룰 등)</label><textarea id="f_memo" lang="ko" class="sleeve-in" placeholder="예) 2인은 변형 룰 추천 / 구성품 ○○ 빠짐">${esc(g.memo||"")}</textarea></div>
     </div>
     <div class="mfoot"><button class="btn cancel" data-close>취소</button>${id?`<button class="btn bgg" id="bggFromEdit">BGG에서 가져오기</button>`:""}<button class="btn save" id="saveGame">저장</button></div>`);
   if(id&&$("#bggFromEdit")) $("#bggFromEdit").onclick=()=>{ closeModal(); bggModal(id); };
@@ -1219,27 +1241,45 @@ function playModal(id, presetName){
   openModal(`
     <div class="mhead"><h3>${id?"플레이 기록 수정":"플레이 기록 추가"}</h3><button class="x" data-close>×</button></div>
     <div class="mbody">
-      <div class="field"><label>게임 *</label><input id="p_name" list="gamelist" value="${esc(p.name)}" placeholder="보유 게임에서 고르거나 직접 입력 (없는 게임도 가능)">
+      <div class="field"><label>게임 *</label><input id="p_name" lang="ko" list="gamelist" value="${esc(p.name)}" placeholder="보유 게임에서 고르거나 직접 입력 (없는 게임도 가능)">
         <datalist id="gamelist">${gameOpts}</datalist>
         <div class="hint">목록에 없는 게임도 그냥 이름을 입력하면 기록됩니다.</div></div>
       <div class="two">
         <div class="field"><label>플레이 날짜</label><input id="p_date" value="${esc(p.date)}" placeholder="2026.06.28"></div>
         <div class="field"><label>인원수</label><input id="p_players" value="${esc(p.players)}" placeholder="자동(참가자 수)"></div>
       </div>
-      <div class="field"><label>플레이 횟수 메모</label><input id="p_count" value="${esc(p.count)}" placeholder="예) 초플, 2회플, 확장 첫 플"></div>
+      <div class="field"><label>게임 메모 (확장 포함, 플레이 횟수 등)</label><input id="p_count" lang="ko" value="${esc(p.count)}" placeholder="예) 초플, 2회플 / 확장 포함, 하우스룰 등"></div>
 
       <label style="font-size:13px;color:var(--muted);display:block;margin:10px 0 6px">참가자별 게임 점수 · 평점 · 한 줄 평</label>
       <div class="nickchips" id="nickChips"></div>
       <div id="revWrap"></div>
       <button class="addnick" id="addNick">＋ 새 참가자 직접 추가</button>
+      <div class="newnick" id="newNickForm" style="display:none">
+        <input id="nn_name" lang="ko" placeholder="이름/닉네임 (예: 민수)">
+        <input id="nn_code" lang="ko" maxlength="6" placeholder="표시 코드 (예: 민수 또는 MS · 비우면 자동)">
+        <div class="newnick-act">
+          <button class="btn save" id="nn_add">추가</button>
+          <button class="btn cancel" id="nn_cancel">취소</button>
+        </div>
+      </div>
     </div>
     <div class="mfoot"><button class="btn cancel" data-close>취소</button><button class="btn save" id="savePlay">저장</button></div>`);
   renderNickChips();
   renderDraftReviews();
   $("#addNick").onclick=()=>{
-    const name=prompt("참가자 이름/닉네임을 입력하세요 (예: 민수)"); if(!name||!name.trim()) return;
-    addParticipantByName(name.trim());
+    const f=$("#newNickForm"); if(!f) return;
+    const show = f.style.display==="none";
+    f.style.display = show? "flex":"none";
+    if(show){ const ni=$("#nn_name"); if(ni) ni.focus(); }
   };
+  if($("#nn_add")) $("#nn_add").onclick=()=>{
+    const nm=$("#nn_name").value.trim(); if(!nm){ $("#nn_name").focus(); return; }
+    const cd=$("#nn_code").value.trim();
+    collectDraft();
+    addParticipantByNameCode(nm, cd);
+    $("#nn_name").value=""; $("#nn_code").value=""; $("#newNickForm").style.display="none";
+  };
+  if($("#nn_cancel")) $("#nn_cancel").onclick=()=>{ $("#nn_name").value=""; $("#nn_code").value=""; $("#newNickForm").style.display="none"; };
   $("#savePlay").onclick=async()=>{
     const name=$("#p_name").value.trim(); if(!name){ $("#p_name").focus(); return; }
     collectDraft();
@@ -1247,8 +1287,12 @@ function playModal(id, presetName){
     // 참가자 이름을 닉네임 목록에 보존(다음 기록에서 칩으로 재사용)
     reviews.forEach(r=>{
       const nm=(r.name||"").trim(); if(!nm) return;
-      if(!state.nicks.find(n=>n.name===nm)){
-        state.nicks.push({code:(r.code||nm.slice(0,2).toUpperCase()), name:nm, color:r.color||NICK_PALETTE[state.nicks.length%NICK_PALETTE.length]});
+      const code=(r.code||"").trim();
+      const ex=state.nicks.find(n=>n.name===nm);
+      if(!ex){
+        state.nicks.push({code: code || nm.slice(0,2).toUpperCase(), name:nm, color:r.color||NICK_PALETTE[state.nicks.length%NICK_PALETTE.length]});
+      } else if(code && code!==ex.code){
+        setNickCode(nm, code);
       }
     });
     const playersField=$("#p_players").value.trim() || (reviews.length? String(reviews.length):"");
@@ -1259,16 +1303,35 @@ function playModal(id, presetName){
     await persist(); closeModal(); renderStats(); renderTab();
   };
 }
-function addParticipantByName(name){
-  const code=name.slice(0,2).toUpperCase();
-  // 기억된 닉네임이면 그 색/코드 사용, 아니면 새로 기억
+function addParticipantByName(name){ addParticipantByNameCode(name, ""); }
+function addParticipantByNameCode(name, code){
+  name=(name||"").trim(); if(!name) return;
+  code=(code||"").trim();
   let nick=state.nicks.find(n=>n.name===name);
   if(!nick){
-    nick={code, name, color:NICK_PALETTE[state.nicks.length%NICK_PALETTE.length]};
+    nick={code: code || name.slice(0,2).toUpperCase(), name,
+          color:NICK_PALETTE[state.nicks.length%NICK_PALETTE.length]};
     state.nicks.push(nick); persist(true);
+  } else if(code && code!==nick.code){
+    setNickCode(name, code); persist(true);
+    nick=state.nicks.find(n=>n.name===name);
   }
-  if(!draftReviews.find(r=>r.name===name)) draftReviews.push(makeParticipant(nick));
+  const dr=draftReviews.find(r=>r.name===name);
+  if(!dr){ draftReviews.push(makeParticipant(nick)); }
+  else if(code){ dr.code=nick.code; }
   renderNickChips(); renderDraftReviews();
+}
+// 표시 코드(닉네임)를 바꿀 때, 과거 기록의 표시도 깨지지 않도록 함께 갱신
+function setNickCode(name, newCode){
+  newCode=(newCode||"").trim(); if(!newCode) return;
+  const nick=state.nicks.find(n=>n.name===name); if(!nick) return;
+  const oldCode=nick.code;
+  if(oldCode===newCode) return;
+  nick.code=newCode;
+  // 이름 없이 코드만으로 참조되던 과거 리뷰를 새 코드로 이전
+  state.plays.forEach(p=>(p.reviews||[]).forEach(rv=>{
+    if((!rv.name||!rv.name.trim()) && rv.code===oldCode) rv.code=newCode;
+  }));
 }
 function renderNickChips(){
   const wrap=$("#nickChips"); if(!wrap) return;
@@ -1283,8 +1346,8 @@ function renderDraftReviews(){
     const code=(r.code||revCode(r));
     return `<div class="revblock">
       <div class="rh">
-        <span class="nick" style="background:${r.color}">${esc(code)}</span>
-        <input class="pname" data-name="${i}" value="${esc(r.name)}" placeholder="이름/닉네임">
+        <input class="nickcode" data-code="${i}" value="${esc(code)}" maxlength="6" title="표시 코드(닉네임) — 직접 수정 가능" style="background:${r.color}">
+        <input class="pname" lang="ko" data-name="${i}" value="${esc(r.name)}" placeholder="이름/닉네임">
         <button class="wintog ${r.winner?"on":""}" data-win="${i}" title="승자로 표시">🏆</button>
         <button class="rm" data-rm="${i}">제거</button>
       </div>
@@ -1296,7 +1359,7 @@ function renderDraftReviews(){
           <span class="scoreunit">/5</span>
         </div>
       </div>
-      <textarea class="revtext" data-text="${i}" placeholder="한 줄 평">${esc(r.text)}</textarea>
+      <textarea class="revtext" lang="ko" data-text="${i}" placeholder="한 줄 평">${esc(r.text)}</textarea>
       <div class="photo-row">
         ${r.photo?`<div class="photo-thumb"><img src="${r.photo}" alt=""><button class="photo-rm" data-photorm="${i}" title="사진 삭제">×</button></div>`:""}
         <label class="photo-add">📷 사진 ${r.photo?"변경":"추가"}<input type="file" accept="image/*" data-photo="${i}" hidden></label>
@@ -1304,6 +1367,7 @@ function renderDraftReviews(){
     </div>`;
   }).join("");
   document.querySelectorAll("[data-name]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.name].name=e.target.value; });
+  document.querySelectorAll("[data-code]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.code].code=e.target.value; });
   document.querySelectorAll("[data-gscore]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.gscore].gscore=e.target.value; });
   document.querySelectorAll("[data-score]").forEach(el=>el.oninput=e=>{ const i=+e.target.dataset.score; const v=parseFloat(e.target.value); draftReviews[i].score=v; const n=document.querySelector('[data-scorenum="'+i+'"]'); if(n) n.value=v; });
   document.querySelectorAll("[data-scorenum]").forEach(el=>el.oninput=e=>{ const i=+e.target.dataset.scorenum; let v=e.target.value===""?null:parseFloat(e.target.value); if(v!=null){ if(v<0)v=0; if(v>5)v=5; } draftReviews[i].score=v; const s=document.querySelector('[data-score="'+i+'"]'); if(s) s.value=(v??0); });
@@ -1315,6 +1379,7 @@ function renderDraftReviews(){
 }
 function collectDraft(){
   document.querySelectorAll("[data-name]").forEach(el=>{ draftReviews[+el.dataset.name].name=el.value; });
+  document.querySelectorAll("[data-code]").forEach(el=>{ draftReviews[+el.dataset.code].code=el.value; });
   document.querySelectorAll("[data-gscore]").forEach(el=>{ draftReviews[+el.dataset.gscore].gscore=el.value; });
   document.querySelectorAll("[data-text]").forEach(el=>{ draftReviews[+el.dataset.text].text=el.value; });
 }
@@ -1773,12 +1838,12 @@ async function initRatePage(){
   view.innerHTML = `<div class="ratewrap"><div class="ratecard">
     <div class="reyebrow">플레이 평가 남기기</div>
     <div class="rk">${esc(game)}</div>
-    <div class="field"><label>이름 / 닉네임</label><input id="r_name" placeholder="예) 민수"></div>
+    <div class="field"><label>이름 / 닉네임</label><input id="r_name" lang="ko" placeholder="예) 민수"></div>
     <div class="field"><label>게임 점수 (선택)</label><input id="r_g" placeholder="예) 98 또는 98:86"></div>
     <div class="field"><label>평점</label>
       <div class="scorerow"><input id="r_s" type="range" min="0" max="5" step="0.1" value="4"><input class="scorenum" id="r_sn" type="number" min="0" max="5" step="0.1" value="4"><span class="scoreunit">/5</span></div>
     </div>
-    <div class="field"><label>한 줄 평</label><textarea id="r_t" placeholder="짧게 한 줄 남겨주세요"></textarea></div>
+    <div class="field"><label>한 줄 평</label><textarea id="r_t" lang="ko" placeholder="짧게 한 줄 남겨주세요"></textarea></div>
     <div class="field"><label>사진 (선택)</label>
       <div class="photo-row"><div id="r_pthumb"></div><label class="photo-add">📷 사진 추가<input type="file" accept="image/*" id="r_photo" hidden></label></div>
     </div>
@@ -1821,7 +1886,7 @@ async function initMultiRatePage(view){
       <div class="field"><label>평점</label>
         <div class="scorerow"><input class="mg_s" data-i="${i}" type="range" min="0" max="5" step="0.1" value="4"><input class="scorenum mg_sn" data-i="${i}" type="number" min="0" max="5" step="0.1" value="4"><span class="scoreunit">/5</span></div>
       </div>
-      <div class="field"><label>한 줄 평</label><textarea class="mg_t" data-i="${i}" placeholder="짧게 한 줄 남겨주세요"></textarea></div>
+      <div class="field"><label>한 줄 평</label><textarea class="mg_t" lang="ko" data-i="${i}" placeholder="짧게 한 줄 남겨주세요"></textarea></div>
       <div class="field"><label>사진 (선택)</label>
         <div class="photo-row"><div class="mg_pt" data-i="${i}"></div><label class="photo-add">📷 사진 추가<input type="file" accept="image/*" class="mg_photo" data-i="${i}" hidden></label></div>
       </div>
@@ -1830,7 +1895,7 @@ async function initMultiRatePage(view){
     <div class="ratecard">
       <div class="reyebrow">여러 게임 평가 남기기</div>
       <div class="rk" style="font-size:18px">${items.length}개 게임</div>
-      <div class="field"><label>이름 / 닉네임 (한 번만 입력)</label><input id="mr_name" placeholder="예) 민수"></div>
+      <div class="field"><label>이름 / 닉네임 (한 번만 입력)</label><input id="mr_name" lang="ko" placeholder="예) 민수"></div>
     </div>
     ${sections}
     <button class="add" id="mr_submit" style="width:100%">전체 평가 제출</button>
