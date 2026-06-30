@@ -60,6 +60,14 @@ button{font-family:inherit;cursor:pointer}
 .actbtn.bulk:hover{filter:brightness(1.05)}
 body.plays-only .tabacts{display:none}
 .pfilters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.namegate{max-width:440px;margin:30px auto;background:var(--card);border:1px solid var(--line);
+  border-radius:18px;box-shadow:var(--shadow);padding:26px 24px;text-align:center}
+.namegate .ng-title{font-family:"Jua";font-size:19px;color:var(--ink);margin-bottom:8px}
+.namegate .ng-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px;word-break:keep-all}
+.namegate .ng-row{display:flex;gap:8px}
+.namegate #viewerInput{flex:1;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;
+  font:inherit;font-size:15px;outline:none}
+.namegate #viewerInput:focus{border-color:var(--felt)}
 
 /* CONTROLS */
 .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
@@ -99,6 +107,42 @@ select{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
 .gcard2 .gname2{font-family:"Jua";font-size:14px;line-height:1.25;color:var(--ink);padding:10px 12px;word-break:keep-all}
 .gone-flag{position:absolute;top:8px;left:8px;background:var(--gone);color:#fff;font-size:11px;
   font-family:"Jua";padding:2px 8px;border-radius:999px}
+.fund-flag{position:absolute;top:8px;left:8px;background:var(--gold);color:#fff;font-size:11px;
+  font-family:"Jua";padding:2px 8px;border-radius:999px}
+.gcard2.funding .cover{opacity:.92}
+.gcard2.expansion{border-style:dashed;border-color:#CFC6B2}
+.gcard2.expansion .gname2{color:var(--muted);font-size:13px}
+.exp-arrow{color:#B7AE9A}
+.exp-tag{position:absolute;top:8px;right:8px;background:rgba(33,69,61,.82);color:#fff;font-size:10px;
+  font-family:"Jua";padding:2px 7px;border-radius:999px}
+
+/* 리뷰 사진 */
+.photo-row{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.photo-add{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-family:"Jua";color:var(--felt);
+  border:1.5px dashed var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+.photo-add:hover{border-color:var(--felt)}
+.photo-thumb{position:relative;width:64px;height:64px;border-radius:9px;overflow:hidden;border:1px solid var(--line)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-rm{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:0;
+  background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:1;cursor:pointer}
+.rev-photo{margin-top:8px}
+.rev-photo img{max-width:140px;max-height:120px;border-radius:10px;border:1px solid var(--line);cursor:pointer;object-fit:cover}
+.lightbox{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+.lightbox img{max-width:94vw;max-height:90vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+
+/* 여러 게임 평가 모달 */
+.mrlist{max-height:46vh;overflow:auto;margin-top:8px;border:1px solid var(--line);border-radius:12px}
+.mrrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.mrrow:last-child{border-bottom:0}
+.mrrow input{width:18px;height:18px;accent-color:var(--felt)}
+.mrname{flex:1;font-family:"Jua";font-size:14px;color:var(--ink)}
+.mrdate{font-size:12px;color:var(--muted)}
+.mrcard{margin-top:12px}
+
+/* 통계 카드 헤더 인라인 셀렉트 */
+.scard-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.scard-head h3{margin:0}
+.inline-sel{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:9px;padding:6px 9px;background:var(--paper);color:var(--ink);outline:none}
 
 /* game detail modal */
 .detail .detail-cover{width:100%;border-radius:12px;overflow:hidden;margin-bottom:14px;background:#EEE8DA}
@@ -334,6 +378,71 @@ body.rate-mode .hero{padding-bottom:20px}
 .storage-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#E7F0E9;
   background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.2);border-radius:11px;padding:7px 11px}
 .storage-badge .sd{width:7px;height:7px;border-radius:50%;background:#8FD3A8}
+
+/* ===== 모바일 대응 ===== */
+@media(max-width:640px){
+  .wrap{padding:0 12px 80px}
+  .hero{padding:15px 15px 17px;border-radius:0 0 20px 20px;margin-bottom:16px}
+  .hero-top{gap:10px}
+  .hero h1{font-size:19px}
+  .meeple{width:25px;height:30px}
+  .tools{gap:6px;flex-wrap:wrap}
+  .ghost{padding:8px 10px;font-size:12px}
+  .storage-badge{font-size:11px;padding:6px 9px}
+
+  .stats{gap:8px;margin-top:14px}
+  .stat{flex:1 1 0;min-width:0;padding:11px 8px;text-align:center}
+  .stat .n{font-size:21px}
+  .stat .l{font-size:10.5px;letter-spacing:0}
+
+  .tabbar{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:14px}
+  .tabs{gap:6px}
+  .tab{flex:1;text-align:center;padding:9px 4px;font-size:14px}
+  .tabacts{gap:8px}
+  .tabacts .actbtn{flex:1;text-align:center;font-size:13px;padding:10px 6px}
+
+  .controls{gap:8px}
+  .search{min-width:0;flex:1 1 100%}
+  .chips{display:flex;gap:6px;flex:1 1 100%}
+  .chips .fchip{flex:1;text-align:center}
+  .controls>select{flex:1 1 calc(50% - 4px);min-width:0}
+  .controls .add{flex:1 1 100%;text-align:center}
+  .pfilters{width:100%;gap:6px}
+  .pfilters>select{flex:1 1 calc(50% - 3px);min-width:0}
+  .pfilters>#playYmSel{flex:1 1 100%}
+
+  .grid2{grid-template-columns:repeat(2,1fr);gap:10px}
+  .gcard2 .gname2{font-size:13px;padding:8px 10px}
+
+  .modal{border-radius:16px;max-height:92vh}
+  .mhead{padding:14px 16px}
+  .mhead h3{font-size:17px}
+  .mbody{padding:14px 16px}
+  .mfoot{padding:12px 16px;flex-wrap:wrap;gap:8px}
+  .mfoot .btn{flex:1 1 calc(50% - 8px)}
+  .two{grid-template-columns:1fr}
+
+  .prow{gap:8px}
+  .scorerow{min-width:0;flex:1 1 100%}
+  .phead{padding:13px 14px}
+  .ptitle{font-size:16px}
+
+  .stats-grid{grid-template-columns:1fr}
+  .kpis.sumbar{gap:8px;padding:13px 10px;justify-content:space-between}
+  .kpi{flex:1 1 0}
+  .kpi .kn{font-size:19px}
+  .kpi .kl{font-size:10.5px}
+  .bar-label{flex-basis:62px;font-size:11px}
+  .bignum{font-size:24px}
+
+  .namegate{margin:18px auto;padding:22px 18px}
+  .detail .detail-cover img{max-height:230px}
+}
+@media(max-width:380px){
+  .grid2{grid-template-columns:repeat(2,1fr)}
+  .stat .n{font-size:19px}
+  .tab{font-size:13px}
+}
 </style>
 
 <div class="hero">
@@ -411,7 +520,7 @@ const DOC_ID = "main";         // 한 가구가 공유하는 데이터 문서
 
 // 친구 평가 링크 모드 여부 (?rate=<playId> 로 접속하면 평가 전용 화면)
 const URLP = new URLSearchParams(location.search);
-const RATE_MODE = URLP.has("rate");
+const RATE_MODE = URLP.has("rate") || URLP.has("rates");
 // 플레이 기록만 공유하는 모드 (?view=plays) — 보유 목록·구매액 숨김
 const PLAYS_ONLY = URLP.get("view")==="plays";
 
@@ -583,6 +692,7 @@ function applyPendingReview(pr){
   base.gscore = pr.gscore!=null?pr.gscore:(base.gscore||"");
   base.score  = (pr.score!=null && pr.score!=="")?Number(pr.score):(base.score??null);
   base.text   = pr.text!=null?pr.text:(base.text||"");
+  if(pr.photo) base.photo = pr.photo;
   if(!ex) p.reviews.push(base);
   return true;
 }
@@ -638,10 +748,42 @@ function matchesBest(g, n){
   if(n==="5") return arr.some(x=>x>=5);
   return arr.includes(parseInt(n,10));
 }
+// 게임 상태: owned(보유) / funding(펀딩중·미도착) / gone(방출)
+function gstatus(g){ if(g.status==="funding") return "funding"; return g.owned===false? "gone":"owned"; }
+function isExpansion(g){ return /확장/.test(g.name||""); }
+// 확장의 본판 찾기: 이름이 접두로 일치하는 비확장 게임 중 가장 긴 것
+function baseOf(exp, pool){
+  let best=null;
+  pool.forEach(g=>{ if(g===exp||isExpansion(g)) return;
+    const a=(g.name||"").replace(/\s/g,""), b=(exp.name||"").replace(/\s/g,"");
+    if(a&&b.startsWith(a)){ if(!best||a.length>best.name.replace(/\s/g,"").length) best=g; }
+  });
+  return best;
+}
+// 확장을 본판 바로 아래로 정렬
+function groupExpansions(list){
+  const idset=new Set(list.map(g=>g.id));
+  const byBase={}; const orphan=[];
+  list.filter(isExpansion).forEach(e=>{ const b=baseOf(e,state.games); if(b&&idset.has(b.id)){ (byBase[b.id]=byBase[b.id]||[]).push(e);} else orphan.push(e); });
+  const out=[];
+  list.forEach(g=>{ if(isExpansion(g)) return; out.push(g); (byBase[g.id]||[]).forEach(e=>out.push(e)); });
+  orphan.forEach(e=>{ if(!out.includes(e)) out.push(e); });
+  return out;
+}
+// 게임 평균 평점(우리 기록 기준). person 지정 시 그 사람 평점만
+function gameAvgRating(name, person){
+  const scores=[];
+  state.plays.forEach(p=>{ if((p.name||"").replace(/\s/g,"")!==(name||"").replace(/\s/g,"")) return;
+    (p.reviews||[]).forEach(r=>{ if(person && revName(r)!==person) return; if(r.score!=null) scores.push(r.score); });
+  });
+  if(!scores.length) return null;
+  return scores.reduce((a,b)=>a+b,0)/scores.length;
+}
 function applyFilters(){
   let list=state.games.slice();
-  if(filter.status==="owned") list=list.filter(g=>g.owned);
-  if(filter.status==="gone") list=list.filter(g=>!g.owned);
+  if(filter.status==="owned") list=list.filter(g=>gstatus(g)==="owned");
+  if(filter.status==="gone") list=list.filter(g=>gstatus(g)==="gone");
+  if(filter.status==="funding") list=list.filter(g=>gstatus(g)==="funding");
   if(filter.q){ const q=filter.q.toLowerCase(); list=list.filter(g=>(g.name+" "+(g.vendor||"")+" "+(g.designers||"")).toLowerCase().includes(q)); }
   if(filter.players&&filter.players!=="all") list=list.filter(g=>matchesPlayers(g,filter.players));
   if(filter.best&&filter.best!=="all") list=list.filter(g=>matchesBest(g,filter.best));
@@ -655,16 +797,18 @@ function applyFilters(){
 }
 function gameCard(g){
   const cover=g.thumb||g.image;
-  return `<button class="gcard2 ${g.owned?"":"gone"}" data-detail="${g.id}" title="${esc(g.name)}">
-    <div class="cover">${cover?`<img loading="lazy" src="${esc(cover)}" alt="">`:`<div class="cover-ph">🎲<span>표지 없음</span></div>`}</div>
-    ${g.owned?"":'<span class="gone-flag">방출</span>'}
-    <div class="gname2">${esc(g.name)}</div>
+  const st=gstatus(g), exp=isExpansion(g);
+  const flag = st==="funding"?'<span class="fund-flag">펀딩중</span>' : st==="gone"?'<span class="gone-flag">방출</span>' : "";
+  return `<button class="gcard2 ${st} ${exp?"expansion":""}" data-detail="${g.id}" title="${esc(g.name)}">
+    <div class="cover">${cover?`<img loading="lazy" src="${esc(cover)}" alt="">`:`<div class="cover-ph">🎲<span>표지 없음</span></div>`}${exp?'<span class="exp-tag">🧩 확장</span>':""}</div>
+    ${flag}
+    <div class="gname2">${exp?'<span class="exp-arrow">↳ </span>':""}${esc(g.name)}</div>
   </button>`;
 }
 // 카드(그리드)만 다시 그림 — 검색창 등 컨트롤은 유지되어 한글 입력(IME)이 끊기지 않음
 function renderGrid(){
   const grid=$("#grid"); if(!grid) return;
-  const list=applyFilters();
+  const list=groupExpansions(applyFilters());
   grid.innerHTML = list.length
     ? list.map(gameCard).join("")
     : `<div class="empty"><div class="big">조건에 맞는 게임이 없어요</div><div>필터를 바꾸거나 ‘게임 추가’로 새 게임을 등록해 보세요.</div></div>`;
@@ -680,6 +824,7 @@ function renderCollection(){
       <div class="chips">
         <button class="fchip" data-status="all" aria-pressed="${filter.status==="all"}">전체</button>
         <button class="fchip" data-status="owned" aria-pressed="${filter.status==="owned"}">보유중</button>
+        <button class="fchip" data-status="funding" aria-pressed="${filter.status==="funding"}">펀딩중</button>
         <button class="fchip" data-status="gone" aria-pressed="${filter.status==="gone"}">방출</button>
       </div>
       <select id="sortSel" title="정렬">
@@ -740,6 +885,8 @@ function gameDetail(id){
     <div class="drow"><span>난이도</span><b>${g.weight!=null?Number(g.weight).toFixed(1)+" / 5":"-"}</b></div>
     <div class="drow"><span>작가</span><b>${esc(g.designers||"-")}</b></div>`
     : `<div class="dempty">아직 BGG 정보가 없어요. 아래 ‘BGG 정보 가져오기’를 눌러 불러오세요.</div>`;
+  const stTxt = gstatus(g)==="owned"?"보유중" : gstatus(g)==="funding"?"펀딩중 (아직 도착 안 함)" : "방출"+(g.disposal?" · "+esc(g.disposal):"");
+  const perPlay = (g.price&&pc>0)? "₩"+Math.round(g.price/pc).toLocaleString()+" / 회" : (pc===0?"아직 플레이 없음":"-");
   openModal(`
     <div class="mhead"><h3>${esc(g.name)}</h3><button class="x" data-close>×</button></div>
     <div class="mbody detail">
@@ -750,11 +897,16 @@ function gameDetail(id){
         <div class="drow"><span>구매 방법</span><b>${esc(g.method||"-")}</b></div>
         <div class="drow"><span>가격</span><b>${won(g.price)}</b></div>
         <div class="drow"><span>구매일</span><b>${esc(g.date||"-")}</b></div>
-        <div class="drow"><span>상태</span><b>${g.owned?"보유중":"방출"+(g.disposal?" · "+esc(g.disposal):"")}</b></div>
+        <div class="drow"><span>상태</span><b>${stTxt}</b></div>
+        <div class="drow"><span>플레이 수 · 1회당 비용</span><b>${pc}회 · ${perPlay}</b></div>
       </section>
       <section class="dsec"><h4>슬리브</h4>
         <textarea id="d_sleeve" class="sleeve-in" placeholder="슬리브 사이즈·수량을 적어두세요 (예: 56×87 100매, 65×90 50매)">${esc(g.sleeve||"")}</textarea>
         <button class="btn save" id="d_sleeve_save" style="margin-top:8px">슬리브 저장</button>
+      </section>
+      <section class="dsec"><h4>메모</h4>
+        <textarea id="d_memo" class="sleeve-in" placeholder="유의점·하우스룰·구성품 메모 등을 적어두세요">${esc(g.memo||"")}</textarea>
+        <button class="btn save" id="d_memo_save" style="margin-top:8px">메모 저장</button>
       </section>
     </div>
     <div class="mfoot detail-foot">
@@ -764,6 +916,7 @@ function gameDetail(id){
       <button class="btn cancel" id="d_del">삭제</button>
     </div>`);
   $("#d_sleeve_save").onclick=async()=>{ g.sleeve=$("#d_sleeve").value; await persist(); toast("슬리브 저장됨"); };
+  $("#d_memo_save").onclick=async()=>{ g.memo=$("#d_memo").value; await persist(); toast("메모 저장됨"); };
   $("#d_play").onclick=()=>{ const nm=g.name; closeModal(); playModal(null, nm); };
   $("#d_bgg").onclick=()=>bggModal(g.id);
   $("#d_edit").onclick=()=>gameModal(g.id);
@@ -785,34 +938,57 @@ function recommendModal(){
         <div class="field"><label>가능 시간(분)</label><input id="rec_time" type="number" min="1" placeholder="예) 45"></div>
       </div>
       <label class="reclbl"><input type="checkbox" id="rec_owned" checked> 보유 중인 게임만</label>
-      <div class="hint">인원·시간 조건은 BGG 정보가 있는 게임에만 적용됩니다.</div>
+      <label class="reclbl"><input type="checkbox" id="rec_best" checked> 선택 인원의 BGG BEST 게임 위주로 (BGG가 그 인원에 베스트라고 표시한 게임)</label>
+      <label class="reclbl"><input type="checkbox" id="rec_high"> 평점 높은 순으로 추천 (체크 해제 시 무작위)</label>
+      <div class="hint">인원·시간·BEST 조건은 BGG 정보가 있는 게임에 적용됩니다.</div>
       <button class="btn save" id="rec_go" style="width:100%;margin-top:10px">추천 받기</button>
       <div id="rec_out" class="rec-out"></div>
     </div>`);
-  $("#rec_go").onclick=doRecommend;
+  $("#rec_go").onclick=()=>doRecommend(true);
 }
-function doRecommend(){
+let _recQueue=[], _recIdx=0;
+function doRecommend(rebuild){
   const pv=$("#rec_players").value;
   const tv=parseInt($("#rec_time").value,10);
   const ownedOnly=$("#rec_owned").checked;
-  let pool=state.games.filter(g=>!ownedOnly || g.owned);
-  if(pv!=="any") pool=pool.filter(g=>matchesPlayers(g,pv));
-  if(!isNaN(tv)) pool=pool.filter(g=> g.ptmax==null || g.ptmax<=tv );
+  const bestFirst=$("#rec_best").checked;
+  const highRated=$("#rec_high").checked;
   const out=$("#rec_out");
-  if(!pool.length){ out.innerHTML=`<div class="dempty">조건에 맞는 게임이 없어요. 시간을 늘리거나 인원을 바꿔보세요.</div>`; return; }
-  const g=pool[Math.floor(Math.random()*pool.length)];
+  if(rebuild){
+    let pool=state.games.filter(g=>!ownedOnly || gstatus(g)==="owned");
+    pool=pool.filter(g=>!isExpansion(g)); // 확장은 추천 대상에서 제외
+    if(pv!=="any") pool=pool.filter(g=>matchesPlayers(g,pv));
+    if(!isNaN(tv)) pool=pool.filter(g=> g.ptmax==null || g.ptmax<=tv );
+    if(!pool.length){ out.innerHTML=`<div class="dempty">조건에 맞는 게임이 없어요. 시간을 늘리거나 인원을 바꿔보세요.</div>`; _recQueue=[]; return; }
+    // BGG BEST 인원 우선 여부 (g.best = BGG가 베스트로 표시한 인원수 배열)
+    const bestKey=g=>(bestFirst && pv!=="any" && matchesBest(g,pv)) ? 1 : 0;
+    if(highRated){
+      // BGG BEST 게임을 먼저, 그 안에서 우리 평점 높은 순
+      pool.sort((x,y)=> (bestKey(y)-bestKey(x)) || ((gameAvgRating(y.name)??-1)-(gameAvgRating(x.name)??-1)) );
+    } else {
+      // 무작위 셔플 후, BGG BEST 게임을 앞으로
+      for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+      if(bestFirst && pv!=="any") pool.sort((x,y)=>(bestKey(y)-bestKey(x)));
+    }
+    _recQueue=pool; _recIdx=0;
+  } else {
+    _recIdx=(_recIdx+1)%_recQueue.length;
+  }
+  if(!_recQueue.length){ out.innerHTML=`<div class="dempty">조건에 맞는 게임이 없어요.</div>`; return; }
+  const g=_recQueue[_recIdx];
   const cover=g.thumb||g.image;
+  const avg=gameAvgRating(g.name);
   out.innerHTML=`
     <div class="rec-card">
       ${cover?`<img src="${esc(cover)}" alt="">`:`<div class="cover-ph small">🎲</div>`}
       <div class="rec-info">
         <div class="rec-name">${esc(g.name)}</div>
-        <div class="rec-meta">${[g.players,g.playtime,(g.weight!=null?"난이도 "+Number(g.weight).toFixed(1):"")].filter(Boolean).map(esc).join(" · ")||"BGG 정보 없음"}</div>
+        <div class="rec-meta">${[g.players,g.playtime,(g.weight!=null?"난이도 "+Number(g.weight).toFixed(1):""),(avg!=null?"우리 평점 "+avg.toFixed(1):"")].filter(Boolean).map(esc).join(" · ")||"BGG 정보 없음"}</div>
         <button class="btn" id="rec_detail">자세히 보기</button>
       </div>
     </div>
-    <button class="btn save" id="rec_again" style="width:100%;margin-top:10px">🎲 다시 뽑기</button>`;
-  $("#rec_again").onclick=doRecommend;
+    <button class="btn save" id="rec_again" style="width:100%;margin-top:10px">🎲 다시 뽑기 (${_recIdx+1}/${_recQueue.length})</button>`;
+  $("#rec_again").onclick=()=>doRecommend(false);
   $("#rec_detail").onclick=()=>{ const gid=g.id; closeModal(); gameDetail(gid); };
 }
 
@@ -858,6 +1034,7 @@ function renderPlays(){
         </div>
         ${rv.score!=null?`<div class="stars" style="margin:0 0 6px">${stars(rv.score)}</div>`:""}
         <div class="rev-text">${hasText?esc(rv.text):"한 줄 평 없음"}</div>
+        ${rv.photo?`<div class="rev-photo"><img src="${rv.photo}" alt="" data-lightbox="${rv.photo}"></div>`:""}
       </div>`;
     }).join("");
     const winners=(p.reviews||[]).filter(r=>r.winner).map(r=>revName(r));
@@ -884,16 +1061,25 @@ function renderPlays(){
 
   let controls, body;
   if(PLAYS_ONLY){
-    const names=allParticipantNames();
-    controls=`
-      <div class="search" style="max-width:none;flex:1"><span style="font-size:13px;color:var(--muted)">${viewerName?`‘${esc(viewerName)}’ 님이 함께한 플레이`:"내 이름을 선택하면, 내가 함께한 플레이 기록을 볼 수 있어요"}</span></div>
-      <select id="viewerSel" title="내 이름">
-        <option value="">이름 선택</option>
-        ${names.map(n=>`<option value="${esc(n)}" ${viewerName===n?"selected":""}>${esc(n)}</option>`).join("")}
-      </select>`;
-    body = !viewerName
-      ? `<div class="empty"><div class="big">이름을 선택해 주세요</div><div>위에서 본인 이름을 고르면, 본인이 참여한 플레이 기록만 모아서 볼 수 있어요. 참여하지 않은 게임은 보이지 않습니다.</div></div>`
-      : (list.length? `<div class="plist">${cards}</div>` : `<div class="empty"><div class="big">참여한 기록이 없어요</div><div>‘${esc(viewerName)}’ 님이 참여한 플레이가 아직 없습니다.</div></div>`);
+    if(viewerName){
+      controls=`
+        <div class="search" style="max-width:none;flex:1"><span style="font-size:13px;color:var(--muted)">‘${esc(viewerName)}’ 님이 함께한 플레이</span></div>
+        <button class="actbtn" id="viewerChange">이름 변경</button>`;
+      body = list.length
+        ? `<div class="plist">${cards}</div>`
+        : `<div class="empty"><div class="big">참여한 기록이 없어요</div><div>‘${esc(viewerName)}’ 님으로 기록된 플레이가 없습니다. 이름의 띄어쓰기·철자를 확인하거나, ‘이름 변경’으로 다시 입력해 주세요.</div></div>`;
+    } else {
+      controls=`<div style="flex:1;font-size:13px;color:var(--muted)">플레이 기록 모음</div>`;
+      body=`
+        <div class="namegate">
+          <div class="ng-title">내 이름을 입력해 주세요</div>
+          <div class="ng-desc">기록에 적힌 본인 이름을 입력하면, 본인이 참여한 플레이만 모아서 보여드려요. 참여하지 않은 게임은 보이지 않습니다.</div>
+          <div class="ng-row">
+            <input id="viewerInput" placeholder="예) 김나영" autocomplete="off">
+            <button class="btn save" id="viewerGo">확인</button>
+          </div>
+        </div>`;
+    }
   } else {
     const gameNames=allPlayGameNames(), persons=allParticipantNames(), months=allPlayMonths();
     const ymLabel=k=>k.slice(0,4)+"."+k.slice(5,7);
@@ -914,23 +1100,34 @@ function renderPlays(){
         ${(playFilter.game!=="all"||playFilter.person!=="all"||playFilter.ym!=="all")?`<button class="fchip" id="playClear">필터 해제</button>`:""}
       </div>
       <div class="spacer" style="flex:1"></div>
-      <button class="actbtn" id="sharePlays">🔗 기록만 공유</button><button class="add alt" id="addPlay">＋ 플레이 기록 추가</button>`;
+      <button class="actbtn" id="multiRate">📋 여러 게임 평가</button><button class="actbtn" id="sharePlays">🔗 기록만 공유</button><button class="add alt" id="addPlay">＋ 플레이 기록 추가</button>`;
     body = list.length? `<div class="plist">${cards}</div>` : `<div class="empty"><div class="big">${(playFilter.game!=="all"||playFilter.person!=="all"||playFilter.ym!=="all")?"조건에 맞는 기록이 없어요":"아직 기록이 없어요"}</div><div>${(playFilter.game!=="all"||playFilter.person!=="all"||playFilter.ym!=="all")?"필터를 바꾸거나 해제해 보세요.":"‘플레이 기록 추가’로 오늘 함께한 게임을 남겨 보세요."}</div></div>`;
   }
 
   $("#view").innerHTML=`<div class="controls">${controls}</div>${body}`;
 
-  if($("#viewerSel")) $("#viewerSel").onchange=e=>{ viewerName=e.target.value||null; renderPlays(); };
+  if($("#viewerGo")){
+    const apply=()=>{ const v=($("#viewerInput").value||"").trim(); if(!v) { $("#viewerInput").focus(); return; } viewerName=v; renderPlays(); };
+    $("#viewerGo").onclick=apply;
+    $("#viewerInput").addEventListener("keydown",e=>{ if(e.key==="Enter") apply(); });
+  }
+  if($("#viewerChange")) $("#viewerChange").onclick=()=>{ viewerName=null; renderPlays(); };
   if($("#playGameSel")) $("#playGameSel").onchange=e=>{ playFilter.game=e.target.value; renderPlays(); };
   if($("#playPersonSel")) $("#playPersonSel").onchange=e=>{ playFilter.person=e.target.value; renderPlays(); };
   if($("#playYmSel")) $("#playYmSel").onchange=e=>{ playFilter.ym=e.target.value; renderPlays(); };
   if($("#playClear")) $("#playClear").onclick=()=>{ playFilter={game:"all",person:"all",ym:"all"}; renderPlays(); };
   if($("#addPlay")) $("#addPlay").onclick=()=>playModal();
   if($("#sharePlays")) $("#sharePlays").onclick=copyPlaysLink;
+  if($("#multiRate")) $("#multiRate").onclick=multiRateModal;
   if($("#clearPq")) $("#clearPq").onclick=()=>{ filter.pq=null; renderPlays(); };
   document.querySelectorAll("[data-pedit]").forEach(b=>b.onclick=()=>playModal(b.dataset.pedit));
   document.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>delPlay(b.dataset.pdel));
   document.querySelectorAll("[data-share]").forEach(b=>b.onclick=()=>copyShareLink(b.dataset.share, b.dataset.sname));
+  document.querySelectorAll("[data-lightbox]").forEach(b=>b.onclick=()=>openLightbox(b.dataset.lightbox));
+}
+function openLightbox(src){
+  const o=$("#overlay"); o.innerHTML=`<div class="lightbox"><img src="${src}" alt=""></div>`; o.classList.add("on");
+  o.onclick=()=>{ o.classList.remove("on"); o.innerHTML=""; };
 }
 
 /* ---------- modals ---------- */
@@ -954,22 +1151,28 @@ function gameModal(id){
         <div class="field"><label>구매일</label><input id="f_date" value="${esc(g.date)}" placeholder="2026.06.28"></div>
       </div>
       <div class="field"><label>보유 상태</label>
-        <select id="f_owned"><option value="1" ${g.owned?"selected":""}>보유중</option><option value="0" ${!g.owned?"selected":""}>방출(처분/양도)</option></select>
+        <select id="f_owned">
+          <option value="owned" ${gstatus(g)==="owned"?"selected":""}>보유중</option>
+          <option value="funding" ${gstatus(g)==="funding"?"selected":""}>펀딩중 (아직 도착 안 함)</option>
+          <option value="gone" ${gstatus(g)==="gone"?"selected":""}>방출(처분/양도)</option>
+        </select>
       </div>
       <div class="field"><label>표지 이미지 URL (선택 · BGG 대신 직접 지정)</label><input id="f_thumb" value="${esc(g.thumb||"")}" placeholder="https://...jpg"></div>
       <div class="field"><label>슬리브 메모 (선택)</label><input id="f_sleeve" value="${esc(g.sleeve||"")}" placeholder="예) 56×87 100매"></div>
+      <div class="field"><label>게임 메모 (선택 · 유의점·하우스룰 등)</label><textarea id="f_memo" class="sleeve-in" placeholder="예) 2인은 변형 룰 추천 / 구성품 ○○ 빠짐">${esc(g.memo||"")}</textarea></div>
     </div>
     <div class="mfoot"><button class="btn cancel" data-close>취소</button>${id?`<button class="btn bgg" id="bggFromEdit">BGG에서 가져오기</button>`:""}<button class="btn save" id="saveGame">저장</button></div>`);
   if(id&&$("#bggFromEdit")) $("#bggFromEdit").onclick=()=>{ closeModal(); bggModal(id); };
   $("#saveGame").onclick=async()=>{
     const name=$("#f_name").value.trim(); if(!name){ $("#f_name").focus(); return; }
-    const thumb=$("#f_thumb").value.trim(), sleeve=$("#f_sleeve").value.trim();
+    const thumb=$("#f_thumb").value.trim(), sleeve=$("#f_sleeve").value.trim(), memo=$("#f_memo").value.trim();
+    const stv=$("#f_owned").value; // owned | funding | gone
     const data={name, vendor:$("#f_vendor").value.trim(), method:$("#f_method").value.trim(),
       price:$("#f_price").value?parseInt($("#f_price").value):null, date:normDate($("#f_date").value.trim()),
-      owned:$("#f_owned").value==="1", sleeve};
+      status:stv, owned:stv==="owned", sleeve, memo};
     if(thumb) data.thumb=thumb;
     if(id){ Object.assign(state.games.find(x=>x.id===id),data); }
-    else { state.games.push({id:"g"+Date.now(), ...data, disposal:data.owned?"":"방출"}); }
+    else { state.games.push({id:"g"+Date.now(), ...data, disposal:stv==="gone"?"방출":""}); }
     await persist(); closeModal(); renderStats(); renderTab();
   };
 }
@@ -987,8 +1190,23 @@ function makeParticipant(src){
     code: src.code || revCode(src),
     name: src.name || (nickOf(src.code).name),
     color: src.color || revColor(src),
-    gscore: src.gscore??"", score: src.score??null, text: src.text||"", winner: !!src.winner
+    gscore: src.gscore??"", score: src.score??null, text: src.text||"", winner: !!src.winner,
+    photo: src.photo||null
   };
+}
+// 사진을 캔버스로 축소·압축해 data URL로 (Firestore 용량 절약)
+function readImageCompressed(file, maxW, quality){
+  maxW=maxW||720; quality=quality||0.6;
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{ const img=new Image();
+      img.onload=()=>{ let w=img.width,h=img.height; if(w>maxW){ h=Math.round(h*maxW/w); w=maxW; }
+        const c=document.createElement("canvas"); c.width=w; c.height=h;
+        c.getContext("2d").drawImage(img,0,0,w,h);
+        res(c.toDataURL("image/jpeg",quality));
+      }; img.onerror=rej; img.src=fr.result;
+    }; fr.onerror=rej; fr.readAsDataURL(file);
+  });
 }
 function playModal(id, presetName){
   const p = id? state.plays.find(x=>x.id===id)
@@ -1023,7 +1241,7 @@ function playModal(id, presetName){
   $("#savePlay").onclick=async()=>{
     const name=$("#p_name").value.trim(); if(!name){ $("#p_name").focus(); return; }
     collectDraft();
-    const reviews=draftReviews.filter(r=>(r.name&&r.name.trim()) || r.score!=null || (r.text&&r.text.trim()) || (r.gscore!=null&&String(r.gscore).trim()!==""));
+    const reviews=draftReviews.filter(r=>(r.name&&r.name.trim()) || r.score!=null || (r.text&&r.text.trim()) || (r.gscore!=null&&String(r.gscore).trim()!=="") || r.photo);
     // 참가자 이름을 닉네임 목록에 보존(다음 기록에서 칩으로 재사용)
     reviews.forEach(r=>{
       const nm=(r.name||"").trim(); if(!nm) return;
@@ -1077,6 +1295,10 @@ function renderDraftReviews(){
         </div>
       </div>
       <textarea class="revtext" data-text="${i}" placeholder="한 줄 평">${esc(r.text)}</textarea>
+      <div class="photo-row">
+        ${r.photo?`<div class="photo-thumb"><img src="${r.photo}" alt=""><button class="photo-rm" data-photorm="${i}" title="사진 삭제">×</button></div>`:""}
+        <label class="photo-add">📷 사진 ${r.photo?"변경":"추가"}<input type="file" accept="image/*" data-photo="${i}" hidden></label>
+      </div>
     </div>`;
   }).join("");
   document.querySelectorAll("[data-name]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.name].name=e.target.value; });
@@ -1084,6 +1306,8 @@ function renderDraftReviews(){
   document.querySelectorAll("[data-score]").forEach(el=>el.oninput=e=>{ const i=+e.target.dataset.score; const v=parseFloat(e.target.value); draftReviews[i].score=v; const n=document.querySelector('[data-scorenum="'+i+'"]'); if(n) n.value=v; });
   document.querySelectorAll("[data-scorenum]").forEach(el=>el.oninput=e=>{ const i=+e.target.dataset.scorenum; let v=e.target.value===""?null:parseFloat(e.target.value); if(v!=null){ if(v<0)v=0; if(v>5)v=5; } draftReviews[i].score=v; const s=document.querySelector('[data-score="'+i+'"]'); if(s) s.value=(v??0); });
   document.querySelectorAll("[data-text]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.text].text=e.target.value; });
+  document.querySelectorAll("[data-photo]").forEach(el=>el.onchange=async e=>{ const i=+e.target.dataset.photo; const f=e.target.files&&e.target.files[0]; if(!f) return; try{ collectDraft(); draftReviews[i].photo=await readImageCompressed(f); renderDraftReviews(); }catch(err){ toast("이미지 처리 실패"); } });
+  document.querySelectorAll("[data-photorm]").forEach(el=>el.onclick=e=>{ const i=+e.target.dataset.photorm; collectDraft(); draftReviews[i].photo=null; renderDraftReviews(); });
   document.querySelectorAll("[data-win]").forEach(el=>el.onclick=e=>{ const i=+e.currentTarget.dataset.win; draftReviews[i].winner=!draftReviews[i].winner; collectDraft(); renderDraftReviews(); });
   document.querySelectorAll("[data-rm]").forEach(el=>el.onclick=e=>{ collectDraft(); draftReviews.splice(+e.target.dataset.rm,1); renderNickChips(); renderDraftReviews(); });
 }
@@ -1118,7 +1342,8 @@ function barChart(rows, opt){
       <div class="bar-track"><div class="bar-fill" style="width:${(r.value/max*100).toFixed(1)}%;background:${opt.color||"var(--felt)"}">${r.value?`<span>${esc(String(fmt(r.value)))}${r.sub?` <em>(${esc(r.sub)})</em>`:""}</span>`:""}</div></div>
     </div>`).join("")}</div>`;
 }
-let statsSub="purchase"; // 'purchase' | 'play'
+let statsSub="play"; // 'play' | 'purchase'  (플레이 통계가 왼쪽 기본)
+let statsRatePerson="all"; // 평점 통계: 'all' 또는 참여자 이름
 function renderStatsTab(){
   const pad=n=>String(n).padStart(2,"0");
   const now=new Date();
@@ -1130,31 +1355,35 @@ function renderStatsTab(){
   const summary=`
     <div class="kpis sumbar">
       <div class="kpi"><div class="kn">${state.games.length}</div><div class="kl">전체 구매</div></div>
-      <div class="kpi"><div class="kn">${state.games.filter(g=>g.owned).length}</div><div class="kl">보유 중인 게임</div></div>
+      <div class="kpi"><div class="kn">${state.games.filter(g=>gstatus(g)==="owned").length}</div><div class="kl">보유 중인 게임</div></div>
       <div class="kpi"><div class="kn">${state.plays.length}</div><div class="kl">총 플레이</div></div>
       <div class="kpi"><div class="kn">₩${(totalSpend/10000).toFixed(0)}<small>만</small></div><div class="kl">전체 누적 금액</div></div>
     </div>`;
 
   const subnav=`
     <div class="substats">
-      <button class="subtab ${statsSub==="purchase"?"on":""}" data-sub="purchase">구매 통계</button>
       <button class="subtab ${statsSub==="play"?"on":""}" data-sub="play">플레이 통계</button>
+      <button class="subtab ${statsSub==="purchase"?"on":""}" data-sub="purchase">구매 통계</button>
     </div>`;
 
   let panel="";
   if(statsSub==="purchase"){
-    // 연도별 구매 금액 / 수량
     const byYear={};
     state.games.forEach(g=>{ const k=dateKey(g.date); const y=k.slice(0,4); if(y==="0000") return; (byYear[y]=byYear[y]||{amt:0,cnt:0}); byYear[y].amt+=(g.price||0); byYear[y].cnt++; });
     const years=Object.keys(byYear).sort();
     const yearAmtRows=years.map(y=>({label:y, value:Math.round(byYear[y].amt/10000)}));
     const yearCntRows=years.map(y=>({label:y, value:byYear[y].cnt}));
+    // 1회당 비용: 가격>0 & 플레이>0, 낮을수록 본전
+    const cpp=state.games.map(g=>{ const pc=playCountFor(g.name); return (g.price>0&&pc>0)?{label:g.name, value:Math.round(g.price/pc), pc}:null; })
+      .filter(Boolean).sort((a,b)=>a.value-b.value).slice(0,10)
+      .map(r=>({label:r.label, value:r.value, sub:`${r.pc}회`}));
+    const neverPlayed=state.games.filter(g=>g.price>0 && playCountFor(g.name)===0 && gstatus(g)==="owned").length;
     panel=`
       <div class="stats-grid">
         <div class="scard wide">
           <h3>총 구매 금액</h3>
           <div class="bignum">₩${totalSpend.toLocaleString()}</div>
-          <div class="subnote">전체 ${state.games.length}개 · 보유 중 가치 ₩${state.games.filter(g=>g.owned).reduce((a,g)=>a+(g.price||0),0).toLocaleString()}</div>
+          <div class="subnote">전체 ${state.games.length}개 · 보유 중 가치 ₩${state.games.filter(g=>gstatus(g)==="owned").reduce((a,g)=>a+(g.price||0),0).toLocaleString()}</div>
         </div>
         <div class="scard">
           <h3>연도별 구매 금액 <small>(만원)</small></h3>
@@ -1164,27 +1393,43 @@ function renderStatsTab(){
           <h3>연도별 구매 수량</h3>
           ${years.length?barChart(yearCntRows,{color:"var(--owned)"}):`<div class="dempty">데이터가 없어요.</div>`}
         </div>
+        <div class="scard wide">
+          <h3>1회당 비용 <small>낮을수록 본전 (가격 ÷ 플레이 수)</small></h3>
+          ${cpp.length?barChart(cpp,{color:"var(--felt)",fmt:v=>"₩"+v.toLocaleString()}):`<div class="dempty">가격·플레이 기록이 있는 게임이 아직 없어요.</div>`}
+          ${neverPlayed?`<div class="subnote" style="margin-top:8px">아직 한 번도 안 한 보유 게임: <b>${neverPlayed}개</b> (미플 게임)</div>`:""}
+        </div>
       </div>`;
   } else {
     // 가장 많이 한 게임 (전체)
     const cntAll={}; state.plays.forEach(p=>{ const n=(p.name||"").trim(); if(n) cntAll[n]=(cntAll[n]||0)+1; });
     const topAll=Object.entries(cntAll).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([n,c])=>({label:n,value:c}));
-    // 최근 한 달
     const cntMonth={}; state.plays.forEach(p=>{ if(dateKey(p.date).slice(0,7)===curYmKey){ const n=(p.name||"").trim(); if(n) cntMonth[n]=(cntMonth[n]||0)+1; } });
     const topMonth=Object.entries(cntMonth).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n,c])=>({label:n,value:c}));
-    // 올해(연도별 최근)
     const cntYear={}; state.plays.forEach(p=>{ if(dateKey(p.date).slice(0,4)===curYear){ const n=(p.name||"").trim(); if(n) cntYear[n]=(cntYear[n]||0)+1; } });
     const topYear=Object.entries(cntYear).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n,c])=>({label:n,value:c}));
+    // 평점 높은 게임 (전체 또는 선택 참여자 기준)
+    const person = statsRatePerson==="all"? null : statsRatePerson;
+    const ratedGames=[...new Set(state.plays.map(p=>(p.name||"").trim()).filter(Boolean))]
+      .map(n=>{ const avg=gameAvgRating(n, person); return avg!=null?{label:n, value:Math.round(avg*10)/10}:null; })
+      .filter(Boolean).sort((a,b)=>b.value-a.value).slice(0,10);
+    const persons=allParticipantNames();
+    const personSel=`<select id="ratePersonSel" class="inline-sel">
+        <option value="all" ${statsRatePerson==="all"?"selected":""}>전체 평균</option>
+        ${persons.map(n=>`<option value="${esc(n)}" ${statsRatePerson===n?"selected":""}>${esc(n)} 기준</option>`).join("")}
+      </select>`;
     // 함께 플레이한 사람 + 승리/승률
     const per={};
     state.plays.forEach(p=>(p.reviews||[]).forEach(r=>{ const n=revName(r); if(!n) return; (per[n]=per[n]||{plays:0,wins:0}); per[n].plays++; if(r.winner) per[n].wins++; }));
     const people=Object.entries(per).sort((a,b)=>b[1].plays-a[1].plays);
     const peopleRows=people.map(([n,v])=>({label:n,value:v.plays}));
     const winRows=people.filter(([,v])=>v.wins>0).sort((a,b)=>b[1].wins-a[1].wins).map(([n,v])=>({label:n,value:v.wins}));
-    const rateRows=people.filter(([,v])=>v.plays>0).map(([n,v])=>({label:n,value:Math.round(v.wins/v.plays*100), sub:`${v.wins}/${v.plays}`}))
-                         .sort((a,b)=>b.value-a.value);
+    const rateRows=people.filter(([,v])=>v.plays>0).map(([n,v])=>({label:n,value:Math.round(v.wins/v.plays*100), sub:`${v.wins}/${v.plays}`})).sort((a,b)=>b.value-a.value);
     panel=`
       <div class="stats-grid">
+        <div class="scard wide">
+          <div class="scard-head"><h3>평점 높은 게임</h3>${personSel}</div>
+          ${ratedGames.length?barChart(ratedGames,{color:"var(--gold)",fmt:v=>v.toFixed(1)}):`<div class="dempty">${person?`‘${esc(person)}’ 님의 평점 기록이 없어요.`:"평점 기록이 없어요."}</div>`}
+        </div>
         <div class="scard">
           <h3>가장 많이 한 게임 <small>전체</small></h3>
           ${topAll.length?barChart(topAll,{color:"var(--felt)"}):`<div class="dempty">플레이 기록이 없어요.</div>`}
@@ -1214,6 +1459,7 @@ function renderStatsTab(){
 
   $("#view").innerHTML=`${summary}${subnav}${panel}`;
   document.querySelectorAll(".subtab").forEach(b=>b.onclick=()=>{ statsSub=b.dataset.sub; renderStatsTab(); });
+  if($("#ratePersonSel")) $("#ratePersonSel").onchange=e=>{ statsRatePerson=e.target.value; renderStatsTab(); };
 }
 
 /* ---------- BoardGameGeek integration ---------- */
@@ -1474,33 +1720,65 @@ async function copyPlaysLink(){
   try{ await navigator.clipboard.writeText(url); toast(STORAGE_MODE==="firebase"?"플레이 기록 공유 링크 복사됨":"링크 복사됨 · 공유하려면 Firebase 설정 필요"); }
   catch(e){ prompt("플레이 기록만 보여주는 공유 링크:", url); }
 }
+function multiRateLink(ids){ return location.origin + location.pathname + "?rates=" + ids.map(encodeURIComponent).join(","); }
+// 하루에 여러 게임을 한 링크로 평가받기
+function multiRateModal(){
+  const plays=state.plays.slice().reverse().slice(0,40); // 최근 40건
+  // 가장 최근 날짜의 게임을 기본 선택
+  const topDate = plays.length? dateKey(plays[0].date) : "";
+  const rows=plays.map(p=>{
+    const checked = dateKey(p.date)===topDate ? "checked":"";
+    return `<label class="mrrow"><input type="checkbox" value="${p.id}" ${checked}>
+      <span class="mrname">${esc(p.name)}</span><span class="mrdate">${esc(p.date||"날짜 미상")}</span></label>`;
+  }).join("");
+  openModal(`
+    <div class="mhead"><h3>📋 여러 게임 평가 링크</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="hint">함께 플레이한 게임들을 한 링크로 묶어 보내면, 친구가 한 번에 각 게임의 평을 남길 수 있어요. 기본으로 가장 최근 날짜의 게임이 선택돼 있습니다.</div>
+      <div class="mrlist">${rows||'<div class="dempty">먼저 플레이 기록을 추가해 주세요.</div>'}</div>
+      <button class="btn save" id="mr_copy" style="width:100%;margin-top:10px">선택한 게임 평가 링크 복사</button>
+    </div>`);
+  if($("#mr_copy")) $("#mr_copy").onclick=async()=>{
+    const ids=[...document.querySelectorAll(".mrlist input:checked")].map(c=>c.value);
+    if(!ids.length){ toast("게임을 한 개 이상 선택하세요"); return; }
+    const url=multiRateLink(ids);
+    try{ await navigator.clipboard.writeText(url); toast(STORAGE_MODE==="firebase"?`${ids.length}개 게임 평가 링크 복사됨`:"링크 복사됨 · Firebase 설정 필요"); }
+    catch(e){ prompt("여러 게임 평가 링크:", url); }
+    closeModal();
+  };
+}
 async function initRatePage(){
   document.body.classList.add("rate-mode");
-  const playId = URLP.get("rate");
-  const game = URLP.get("g") || "보드게임";
   const ready = await initFirebase();
   const view = document.getElementById("view");
   if(!ready){
     view.innerHTML = `<div class="ratewrap"><div class="ratecard">
-      <div class="rk">${esc(game)}</div>
       <p class="rmsg">이 평가 링크는 호스트가 Firebase 동기화를 설정해야 작동해요. 호스트에게 알려주세요.</p>
     </div></div>`;
     return;
   }
+  if(URLP.has("rates")){ await initMultiRatePage(view); return; }
+  const playId = URLP.get("rate");
+  const game = URLP.get("g") || "보드게임";
   view.innerHTML = `<div class="ratewrap"><div class="ratecard">
     <div class="reyebrow">플레이 평가 남기기</div>
     <div class="rk">${esc(game)}</div>
     <div class="field"><label>이름 / 닉네임</label><input id="r_name" placeholder="예) 민수"></div>
     <div class="field"><label>게임 점수 (선택)</label><input id="r_g" placeholder="예) 98 또는 98:86"></div>
     <div class="field"><label>평점</label>
-      <div class="scorerow"><input id="r_s" type="range" min="0" max="5" step="0.1" value="4"><span class="scoreval" id="r_sv">4</span></div>
+      <div class="scorerow"><input id="r_s" type="range" min="0" max="5" step="0.1" value="4"><input class="scorenum" id="r_sn" type="number" min="0" max="5" step="0.1" value="4"><span class="scoreunit">/5</span></div>
     </div>
     <div class="field"><label>한 줄 평</label><textarea id="r_t" placeholder="짧게 한 줄 남겨주세요"></textarea></div>
+    <div class="field"><label>사진 (선택)</label>
+      <div class="photo-row"><div id="r_pthumb"></div><label class="photo-add">📷 사진 추가<input type="file" accept="image/*" id="r_photo" hidden></label></div>
+    </div>
     <button class="add" id="r_submit" style="width:100%">평가 제출</button>
-    <div class="rmsg" id="r_done" style="display:none">고마워요! 평가가 호스트에게 전달됐어요. 한 번 더 남기려면 새로고침하세요.</div>
   </div></div>`;
-  const sv=document.getElementById("r_s");
-  sv.oninput=()=>document.getElementById("r_sv").textContent=sv.value;
+  const sv=document.getElementById("r_s"), sn=document.getElementById("r_sn");
+  sv.oninput=()=>{ sn.value=sv.value; };
+  sn.oninput=()=>{ let v=parseFloat(sn.value); if(isNaN(v))return; v=Math.max(0,Math.min(5,v)); sv.value=v; };
+  let rphoto=null;
+  document.getElementById("r_photo").onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f)return; try{ rphoto=await readImageCompressed(f); document.getElementById("r_pthumb").innerHTML=`<div class="photo-thumb"><img src="${rphoto}" alt=""></div>`; }catch(_){ } };
   document.getElementById("r_submit").onclick=async()=>{
     const name=document.getElementById("r_name").value.trim();
     if(!name){ document.getElementById("r_name").focus(); return; }
@@ -1508,11 +1786,66 @@ async function initRatePage(){
       gscore:document.getElementById("r_g").value.trim(),
       score:parseFloat(document.getElementById("r_s").value),
       text:document.getElementById("r_t").value.trim(), ts:Date.now() };
+    if(rphoto) payload.photo=rphoto;
     try{
       await fb.addDoc(fb.collection(fb.db,"pending_reviews"), payload);
       document.querySelector(".ratecard").innerHTML =
         `<div class="reyebrow">제출 완료</div><div class="rk">${esc(game)}</div>
          <p class="rmsg">고마워요, ${esc(name)}님! 평가가 호스트에게 전달됐어요.</p>`;
+    }catch(e){ alert("제출에 실패했어요: "+e.message); }
+  };
+}
+// 여러 게임을 한 번에 평가 (?rates=id1,id2,...)
+async function initMultiRatePage(view){
+  const ids=(URLP.get("rates")||"").split(",").map(s=>s.trim()).filter(Boolean);
+  // 게임 이름 매핑: 메인 문서에서 플레이 목록을 읽어옴
+  let nameMap={};
+  try{ const snap=await fb.getDoc(fb.doc(fb.db,"boardgame",DOC_ID));
+    if(snap.exists()){ (snap.data().plays||[]).forEach(p=>{ nameMap[p.id]=p.name; }); } }catch(e){}
+  const items=ids.map(id=>({id, name:nameMap[id]||"게임"}));
+  if(!items.length){ view.innerHTML=`<div class="ratewrap"><div class="ratecard"><p class="rmsg">평가할 게임이 없습니다.</p></div></div>`; return; }
+  const sections=items.map((it,i)=>`
+    <div class="ratecard mrcard">
+      <div class="rk">${esc(it.name)}</div>
+      <div class="field"><label>게임 점수 (선택)</label><input class="mg_g" data-i="${i}" placeholder="예) 98 또는 98:86"></div>
+      <div class="field"><label>평점</label>
+        <div class="scorerow"><input class="mg_s" data-i="${i}" type="range" min="0" max="5" step="0.1" value="4"><input class="scorenum mg_sn" data-i="${i}" type="number" min="0" max="5" step="0.1" value="4"><span class="scoreunit">/5</span></div>
+      </div>
+      <div class="field"><label>한 줄 평</label><textarea class="mg_t" data-i="${i}" placeholder="짧게 한 줄 남겨주세요"></textarea></div>
+      <div class="field"><label>사진 (선택)</label>
+        <div class="photo-row"><div class="mg_pt" data-i="${i}"></div><label class="photo-add">📷 사진 추가<input type="file" accept="image/*" class="mg_photo" data-i="${i}" hidden></label></div>
+      </div>
+    </div>`).join("");
+  view.innerHTML=`<div class="ratewrap">
+    <div class="ratecard">
+      <div class="reyebrow">여러 게임 평가 남기기</div>
+      <div class="rk" style="font-size:18px">${items.length}개 게임</div>
+      <div class="field"><label>이름 / 닉네임 (한 번만 입력)</label><input id="mr_name" placeholder="예) 민수"></div>
+    </div>
+    ${sections}
+    <button class="add" id="mr_submit" style="width:100%">전체 평가 제출</button>
+    <div class="rmsg" id="mr_hint" style="text-align:center;margin-top:10px">점수를 남기고 싶지 않은 게임은 비워둬도 돼요.</div>
+  </div>`;
+  const photos={};
+  document.querySelectorAll(".mg_s").forEach(s=>s.oninput=()=>{ const i=s.dataset.i; const n=document.querySelector('.mg_sn[data-i="'+i+'"]'); if(n)n.value=s.value; });
+  document.querySelectorAll(".mg_sn").forEach(n=>n.oninput=()=>{ let v=parseFloat(n.value); if(isNaN(v))return; v=Math.max(0,Math.min(5,v)); const s=document.querySelector('.mg_s[data-i="'+n.dataset.i+'"]'); if(s)s.value=v; });
+  document.querySelectorAll(".mg_photo").forEach(p=>p.onchange=async e=>{ const i=p.dataset.i; const f=e.target.files&&e.target.files[0]; if(!f)return; try{ photos[i]=await readImageCompressed(f); document.querySelector('.mg_pt[data-i="'+i+'"]').innerHTML=`<div class="photo-thumb"><img src="${photos[i]}" alt=""></div>`; }catch(_){ } });
+  document.getElementById("mr_submit").onclick=async()=>{
+    const name=document.getElementById("mr_name").value.trim();
+    if(!name){ document.getElementById("mr_name").focus(); return; }
+    try{
+      let sent=0;
+      for(let i=0;i<items.length;i++){
+        const g=(document.querySelector('.mg_g[data-i="'+i+'"]').value||"").trim();
+        const s=parseFloat(document.querySelector('.mg_s[data-i="'+i+'"]').value);
+        const t=(document.querySelector('.mg_t[data-i="'+i+'"]').value||"").trim();
+        const touched = g || t || photos[i] || (document.querySelector('.mg_sn[data-i="'+i+'"]').value!=="4");
+        if(!touched) continue; // 건드리지 않은 게임은 제출 안 함
+        const payload={ playId:items[i].id, game:items[i].name, name, gscore:g, score:s, text:t, ts:Date.now() };
+        if(photos[i]) payload.photo=photos[i];
+        await fb.addDoc(fb.collection(fb.db,"pending_reviews"), payload); sent++;
+      }
+      document.querySelector("#view .ratewrap").innerHTML=`<div class="ratecard"><div class="reyebrow">제출 완료</div><p class="rmsg">고마워요, ${esc(name)}님! ${sent}개 게임 평가가 전달됐어요.</p></div>`;
     }catch(e){ alert("제출에 실패했어요: "+e.message); }
   };
 }
