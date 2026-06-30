@@ -883,6 +883,8 @@ function gameDetail(id){
     <div class="drow"><span>BEST 인원</span><b>${(g.best&&g.best.length)?esc(g.best.join(", "))+"인":"-"}</b></div>
     <div class="drow"><span>플레이 시간</span><b>${esc(g.playtime||"-")}</b></div>
     <div class="drow"><span>난이도</span><b>${g.weight!=null?Number(g.weight).toFixed(1)+" / 5":"-"}</b></div>
+    <div class="drow"><span>BGG 평균 평점</span><b>${g.bggRating!=null?Number(g.bggRating).toFixed(1)+" / 10":"-"}</b></div>
+    <div class="drow"><span>BGG 순위</span><b>${g.bggRank!=null?esc(g.bggRank.toLocaleString())+"위":"-"}</b></div>
     <div class="drow"><span>작가</span><b>${esc(g.designers||"-")}</b></div>`
     : `<div class="dempty">아직 BGG 정보가 없어요. 아래 ‘BGG 정보 가져오기’를 눌러 불러오세요.</div>`;
   const stTxt = gstatus(g)==="owned"?"보유중" : gstatus(g)==="funding"?"펀딩중 (아직 도착 안 함)" : "방출"+(g.disposal?" · "+esc(g.disposal):"");
@@ -1577,6 +1579,11 @@ function parseThing(it){
   else if(rec.length) players="추천 "+rec.join(",")+"인";
   else if(mn&&mx) players=mn+"–"+mx+"인";
   const wRaw=val("statistics > ratings > averageweight") || val("averageweight");
+  // 평균 평점 / BGG 순위
+  const ratingRaw = val("statistics > ratings > average");
+  let rank=null;
+  const rankEl = it.querySelector('rank[type="subtype"][name="boardgame"]') || it.querySelector('ranks > rank');
+  if(rankEl){ const rv=rankEl.getAttribute("value"); if(rv && rv!=="Not Ranked" && !isNaN(parseInt(rv,10))) rank=parseInt(rv,10); }
   // 플레이 시간
   const pt=val("playingtime"), ptMin=val("minplaytime"), ptMax=val("maxplaytime");
   let playtime="";
@@ -1591,6 +1598,8 @@ function parseThing(it){
     thumb: (it.querySelector("thumbnail")||{}).textContent||"",
     image: (it.querySelector("image")||{}).textContent||"",
     weight: wRaw?parseFloat(wRaw):null,
+    rating: (ratingRaw && !isNaN(parseFloat(ratingRaw)))?parseFloat(ratingRaw):null,
+    rank,
     designers: designers.length?designers.join(", "):"",
     pmin: mn?parseInt(mn,10):null,
     pmax: mx?parseInt(mx,10):null,
@@ -1605,6 +1614,7 @@ function applyBgg(game, t){
   game.weight=t.weight; game.players=t.players; game.bggYear=t.year;
   game.designers=t.designers; game.pmin=t.pmin; game.pmax=t.pmax;
   game.best=t.best; game.playtime=t.playtime; game.ptmax=t.ptmax;
+  game.bggRating=t.rating; game.bggRank=t.rank;
 }
 
 async function bggModal(gid){
@@ -1612,7 +1622,7 @@ async function bggModal(gid){
   openModal(`
     <div class="mhead"><h3>BGG 정보 가져오기</h3><button class="x" data-close>×</button></div>
     <div class="mbody">
-      <div class="bgg-note">‘${esc(g.name)}’ 와 일치하는 BoardGameGeek 항목을 골라 주세요. 한글 이름은 잘 안 잡히므로, 결과가 없으면 <b>영어 원제</b>로 바꿔서 다시 검색해 보세요. 선택하면 그림·무게·추천 인원이 자동으로 채워집니다.</div>
+      <div class="bgg-note">‘${esc(g.name)}’ 와 일치하는 BoardGameGeek 항목을 골라 주세요. 한글 이름은 잘 안 잡히므로, 결과가 없으면 <b>영어 원제</b>로 바꿔서 다시 검색해 보세요. 선택하면 그림·인원·난이도·평점·순위가 자동으로 채워집니다.</div>
       <div class="field" style="display:flex;gap:8px;margin-bottom:12px">
         <input id="bgg_q" value="${esc(g.name)}" placeholder="예) Everdell" style="flex:1">
         <button class="btn bgg" id="bgg_go" style="white-space:nowrap">검색</button>
@@ -1633,7 +1643,7 @@ async function bggModal(gid){
         return `<button class="cand" data-pick="${h.id}">
           <img loading="lazy" src="${esc(d.thumb||"")}" alt="">
           <div class="ci"><div class="cn">${esc(d.name||h.name)}</div>
-          <div class="cm">${h.year?h.year+" · ":""}${d.weight?"난이도 "+d.weight.toFixed(1)+" · ":""}${esc(d.players||"")}${d.playtime?" · "+esc(d.playtime):""}${d.designers?" · "+esc(d.designers):""}</div></div>
+          <div class="cm">${h.year?h.year+" · ":""}${d.weight?"난이도 "+d.weight.toFixed(1)+" · ":""}${d.rating!=null?"평점 "+d.rating.toFixed(1)+" · ":""}${d.rank!=null?d.rank.toLocaleString()+"위 · ":""}${esc(d.players||"")}${d.playtime?" · "+esc(d.playtime):""}${d.designers?" · "+esc(d.designers):""}</div></div>
         </button>`;
       }).join("");
       document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=async()=>{
@@ -1645,7 +1655,7 @@ async function bggModal(gid){
   };
   $("#bgg_go").onclick=run;
   $("#bgg_q").onkeydown=e=>{ if(e.key==="Enter") run(); };
-  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","best","playtime","ptmax","bggYear"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderTab(); };
+  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","best","playtime","ptmax","bggYear","bggRating","bggRank"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderTab(); };
   run();
 }
 
