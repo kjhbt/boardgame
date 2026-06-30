@@ -45,10 +45,21 @@ button{font-family:inherit;cursor:pointer}
 .stat .l{font-size:12px;color:var(--mint);margin-top:5px;letter-spacing:.3px}
 
 /* TABS */
-.tabs{display:flex;gap:8px;margin-bottom:18px}
+.tabbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.tabs{display:flex;gap:8px}
 .tab{flex:0 0 auto;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);
   font-family:"Jua";font-size:16px;padding:10px 20px;border-radius:13px;transition:.15s}
 .tab[aria-selected=true]{background:var(--ink);color:#FBF8F1;border-color:var(--ink)}
+.tabacts{display:flex;gap:8px;flex-wrap:wrap}
+.actbtn{font-family:"Jua";font-size:14px;border-radius:12px;padding:10px 16px;border:1.5px solid var(--line);
+  background:#fff;color:var(--ink);transition:.15s;cursor:pointer}
+.actbtn:hover{border-color:var(--felt)}
+.actbtn.rec{background:var(--felt);color:#fff;border-color:var(--felt)}
+.actbtn.rec:hover{filter:brightness(1.06)}
+.actbtn.bulk{background:#E8632E;color:#fff;border-color:#E8632E}
+.actbtn.bulk:hover{filter:brightness(1.05)}
+body.plays-only .tabacts{display:none}
+.pfilters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* CONTROLS */
 .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
@@ -72,6 +83,56 @@ select{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
 
 /* GRID */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+
+/* simplified cover grid */
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.gcard2{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;cursor:pointer;
+  text-align:left;padding:0;transition:.15s}
+.gcard2:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(34,31,25,.14)}
+.gcard2.gone{opacity:.6}
+.gcard2 .cover{aspect-ratio:1/1;background:#EEE8DA;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.gcard2 .cover img{width:100%;height:100%;object-fit:cover;display:block}
+.cover-ph{display:flex;flex-direction:column;align-items:center;gap:4px;color:#B7AE9A;font-size:30px}
+.cover-ph span{font-size:11px;font-family:"Gowun Dodum"}
+.cover-ph.small{font-size:22px}
+.gcard2 .gname2{font-family:"Jua";font-size:14px;line-height:1.25;color:var(--ink);padding:10px 12px;word-break:keep-all}
+.gone-flag{position:absolute;top:8px;left:8px;background:var(--gone);color:#fff;font-size:11px;
+  font-family:"Jua";padding:2px 8px;border-radius:999px}
+
+/* game detail modal */
+.detail .detail-cover{width:100%;border-radius:12px;overflow:hidden;margin-bottom:14px;background:#EEE8DA}
+.detail .detail-cover img{width:100%;display:block;max-height:300px;object-fit:contain;background:#EEE8DA}
+.detail .detail-cover.ph{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center}
+.dsec{border-top:1px solid var(--line);padding:13px 0 4px}
+.dsec:first-of-type{border-top:0}
+.dsec h4{margin:0 0 8px;font-family:"Jua";font-size:14px;color:var(--felt)}
+.drow{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:13.5px}
+.drow span{color:var(--muted)}
+.drow b{font-weight:400;color:var(--ink);text-align:right;word-break:keep-all}
+.dempty{font-size:13px;color:var(--muted);padding:4px 0 8px}
+.sleeve-in{width:100%;min-height:60px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;
+  font:inherit;font-size:13.5px;resize:vertical;outline:none}
+.sleeve-in:focus{border-color:var(--felt)}
+.detail-foot{flex-wrap:wrap;gap:8px}
+.btn.alt2{background:var(--jh);color:#fff}
+
+/* recommend modal */
+.rec-btn{}
+.reclbl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);margin-top:10px}
+.rec-out{margin-top:14px}
+.rec-card{display:flex;gap:14px;align-items:center;background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:12px}
+.rec-card img{width:84px;height:84px;border-radius:10px;object-fit:cover;flex:0 0 auto}
+.rec-info{min-width:0}
+.rec-name{font-family:"Jua";font-size:17px;color:var(--ink);word-break:keep-all}
+.rec-meta{font-size:12.5px;color:var(--muted);margin:4px 0 8px}
+
+/* plays-only shared view */
+body.plays-only [data-tab="collection"]{display:none}
+body.plays-only [data-tab="stats"]{display:none}
+body.plays-only .tools{display:none}
+body.plays-only .tabs{pointer-events:none}
+
 .gcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 15px 13px;
   box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;gap:9px;transition:.15s}
 .gcard:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(34,31,25,.13)}
@@ -164,10 +225,17 @@ select{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
 .revblock .rm:hover{color:var(--gone)}
 .prow{display:flex;gap:12px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
 .minlbl{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.revblock .revtext{display:block;width:100%;box-sizing:border-box;min-height:64px;
+  border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:13.5px;
+  color:var(--ink);resize:vertical;outline:none}
+.revblock .revtext:focus{border-color:var(--felt)}
 .minlbl .gscore{font:inherit;font-size:13px;width:120px;border:1.5px solid var(--line);border-radius:9px;padding:6px 9px;outline:none;color:var(--ink)}
 .minlbl .gscore:focus{border-color:var(--felt)}
 .scorerow{display:flex;align-items:center;gap:10px;margin-bottom:0;flex:1;min-width:180px}
 .scorerow input[type=range]{flex:1;accent-color:var(--felt)}
+.scorenum{width:64px;border:1.5px solid var(--line);border-radius:9px;padding:6px 8px;font:inherit;font-size:14px;text-align:center;outline:none;color:var(--ink)}
+.scorenum:focus{border-color:var(--felt)}
+.scoreunit{font-size:12px;color:var(--muted)}
 .scoreval{font-family:"Black Han Sans";font-size:17px;min-width:30px;text-align:right;color:var(--felt)}
 .nickchips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
 .nickchip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1.5px solid var(--line);
@@ -184,6 +252,38 @@ select{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
 .savebar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);
   color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
 .savebar.show{opacity:1}
+
+/* 본인 표시 (플레이 전용 공유) */
+.rev.mine{outline:2px solid var(--felt);outline-offset:-2px;background:#F3F7F4}
+.metag{font-size:10px;background:var(--felt);color:#fff;border-radius:999px;padding:1px 6px;margin-left:2px;vertical-align:1px}
+
+/* 통계 탭 */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px 18px}
+.scard.wide{grid-column:1/-1}
+.scard h3{margin:0 0 12px;font-family:"Jua";font-size:15px;color:var(--ink)}
+.scard h3 small{font-family:"Gowun Dodum";font-size:12px;color:var(--muted);font-weight:400}
+.chart{display:flex;flex-direction:column;gap:7px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-label{flex:0 0 78px;font-size:12px;color:var(--muted);text-align:right;word-break:keep-all}
+.bar-track{flex:1;background:#EFE9DB;border-radius:7px;height:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:7px;min-width:2px;display:flex;align-items:center;justify-content:flex-end;
+  transition:width .4s ease}
+.bar-fill span{color:#fff;font-size:11px;font-family:"Jua";padding:0 7px;white-space:nowrap}
+.kpis{display:flex;flex-wrap:wrap;gap:18px}
+.kpis.sumbar{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+  padding:16px 20px;justify-content:space-around;margin-bottom:14px}
+.substats{display:flex;gap:8px;margin-bottom:14px}
+.subtab{font-family:"Jua";font-size:14px;border:1.5px solid var(--line);background:var(--paper);color:var(--muted);
+  border-radius:11px;padding:8px 18px;cursor:pointer;transition:.15s}
+.subtab.on{background:var(--felt);color:#fff;border-color:var(--felt)}
+.bignum{font-family:"Black Han Sans";font-size:30px;color:var(--felt)}
+.subnote{font-size:12.5px;color:var(--muted);margin-top:4px}
+.bar-fill span em{font-style:normal;opacity:.85;font-size:10px}
+.kpi{text-align:center}
+.kpi .kn{font-family:"Black Han Sans";font-size:24px;color:var(--felt)}
+.kpi .kn small{font-size:12px}
+.kpi .kl{font-size:11.5px;color:var(--muted);margin-top:2px}
 .bgg-credit{margin:26px 2px 8px;padding-top:16px;border-top:1px solid var(--line);text-align:center}
 .bgg-credit a{display:inline-flex;align-items:center;gap:7px;color:var(--felt);text-decoration:none;
   font-size:13px;font-family:"Jua";background:var(--paper);border:1.5px solid var(--line);
@@ -256,9 +356,16 @@ body.rate-mode .hero{padding-bottom:20px}
 </div>
 
 <div class="wrap">
-  <div class="tabs">
-    <button class="tab" data-tab="collection" aria-selected="true">🎲 보유 게임</button>
-    <button class="tab" data-tab="plays" aria-selected="false">📖 플레이 기록</button>
+  <div class="tabbar">
+    <div class="tabs">
+      <button class="tab" data-tab="collection" aria-selected="true">보유 게임</button>
+      <button class="tab" data-tab="plays" aria-selected="false">플레이 기록</button>
+      <button class="tab" data-tab="stats" aria-selected="false">통계</button>
+    </div>
+    <div class="tabacts">
+      <button class="actbtn rec" id="recBtn">🎲 랜덤 추천</button>
+      <button class="actbtn bulk" id="bulkBtn">BGG 일괄 연동</button>
+    </div>
   </div>
   <div id="view"></div>
   <footer class="bgg-credit">
@@ -305,6 +412,8 @@ const DOC_ID = "main";         // 한 가구가 공유하는 데이터 문서
 // 친구 평가 링크 모드 여부 (?rate=<playId> 로 접속하면 평가 전용 화면)
 const URLP = new URLSearchParams(location.search);
 const RATE_MODE = URLP.has("rate");
+// 플레이 기록만 공유하는 모드 (?view=plays) — 보유 목록·구매액 숨김
+const PLAYS_ONLY = URLP.get("view")==="plays";
 
 let HAS_LOCAL = false;
 try{ const t="__bg_test__"; localStorage.setItem(t,"1"); localStorage.removeItem(t); HAS_LOCAL=true; }catch(e){ HAS_LOCAL=false; }
@@ -400,6 +509,7 @@ async function load(){
       }
     });
     subscribePending();
+    await clearSeedPlaysOnce();
     return;
   }
   // ---- 로컬/메모리 폴백 ----
@@ -416,10 +526,20 @@ async function load(){
     state.nicks = await sget("bg_nicks") || SEED.nicknames;
     migrateDates();
   }
+  await clearSeedPlaysOnce();
 }
 function migrateDates(){
   (state.games||[]).forEach(g=>{ g.date=normDate(g.date); });
   (state.plays||[]).forEach(p=>{ p.date=normDate(p.date); });
+}
+SEED.plays=[]; // 예시 플레이는 기본 제외(직접 입력)
+async function clearSeedPlaysOnce(){
+  try{ if(await sget("bg_seed_plays_cleared")) return; }catch(e){}
+  const isSeed=id=>/^p([1-9]|1[0-8])$/.test(id||"");
+  const before=(state.plays||[]).length;
+  state.plays=(state.plays||[]).filter(p=>!isSeed(p.id));
+  if(state.plays.length!==before){ await persist(true); }
+  try{ await rawSet("bg_seed_plays_cleared","1"); }catch(e){}
 }
 async function persist(silent){
   if(STORAGE_MODE==="firebase" && fb){
@@ -480,26 +600,29 @@ function revCode(rv){ const c=(rv.code||revName(rv)||"?").trim(); return c.slice
 function stars(score){ if(score==null) return ""; const f=Math.round(score); return "★".repeat(f)+"☆".repeat(Math.max(0,5-f)); }
 
 let activeTab="collection";
-let filter={q:"",status:"all",sort:"recent",players:"all",designer:"all"};
+let filter={q:"",status:"all",sort:"recent",players:"all",best:"all"};
+let viewerName=null; // 플레이 전용 공유 모드에서 선택한 본인 이름
+let playFilter={game:"all",person:"all",ym:"all"}; // 플레이 탭 검색
 
 /* ---------- stats ---------- */
 function renderStats(){
+  if(PLAYS_ONLY){
+    const players=new Set();
+    state.plays.forEach(p=>(p.reviews||[]).forEach(r=>players.add(revName(r))));
+    $("#stats").innerHTML=`
+      <div class="stat"><div class="n">${state.plays.length}</div><div class="l">플레이 기록</div></div>
+      <div class="stat"><div class="n">${players.size}</div><div class="l">함께한 사람</div></div>`;
+    return;
+  }
   const owned=state.games.filter(g=>g.owned);
-  const total=owned.reduce((a,g)=>a+(g.price||0),0);
   $("#stats").innerHTML=`
     <div class="stat"><div class="n">${owned.length}</div><div class="l">보유 게임</div></div>
     <div class="stat"><div class="n">${state.games.length}</div><div class="l">전체 구매</div></div>
-    <div class="stat"><div class="n">₩${(total/10000).toFixed(0)}<small style="font-size:13px">만</small></div><div class="l">보유 게임 구매액</div></div>
     <div class="stat"><div class="n">${state.plays.length}</div><div class="l">플레이 기록</div></div>`;
 }
 
 /* ---------- collection ---------- */
 function playCountFor(name){ return state.plays.filter(p=>(p.name||"").replace(/\s/g,"")===name.replace(/\s/g,"")).length; }
-function allDesigners(){
-  const set=new Set();
-  state.games.forEach(g=>{ if(g.designers) g.designers.split(",").forEach(d=>{ const t=d.trim(); if(t) set.add(t); }); });
-  return [...set].sort((a,b)=>a.localeCompare(b,"en"));
-}
 function matchesPlayers(g, n){
   if(n==="all") return true;
   const min=g.pmin, max=g.pmax;
@@ -508,63 +631,51 @@ function matchesPlayers(g, n){
   const k=parseInt(n,10);
   return min<=k && k<=max;
 }
-function renderCollection(){
+function matchesBest(g, n){
+  if(n==="all") return true;
+  const arr=g.best||[];
+  if(!arr.length) return false;
+  if(n==="5") return arr.some(x=>x>=5);
+  return arr.includes(parseInt(n,10));
+}
+function applyFilters(){
   let list=state.games.slice();
   if(filter.status==="owned") list=list.filter(g=>g.owned);
   if(filter.status==="gone") list=list.filter(g=>!g.owned);
   if(filter.q){ const q=filter.q.toLowerCase(); list=list.filter(g=>(g.name+" "+(g.vendor||"")+" "+(g.designers||"")).toLowerCase().includes(q)); }
   if(filter.players&&filter.players!=="all") list=list.filter(g=>matchesPlayers(g,filter.players));
-  if(filter.designer&&filter.designer!=="all") list=list.filter(g=>(g.designers||"").includes(filter.designer));
+  if(filter.best&&filter.best!=="all") list=list.filter(g=>matchesBest(g,filter.best));
   if(filter.sort==="recent") list.sort((a,b)=>dateKey(b.date).localeCompare(dateKey(a.date)));
   else if(filter.sort==="name") list.sort((a,b)=>a.name.localeCompare(b.name,"ko"));
   else if(filter.sort==="price_d") list.sort((a,b)=>(b.price||0)-(a.price||0));
   else if(filter.sort==="price_a") list.sort((a,b)=>(a.price||0)-(b.price||0));
   else if(filter.sort==="weight_d") list.sort((a,b)=>(b.weight??-1)-(a.weight??-1));
   else if(filter.sort==="weight_a") list.sort((a,b)=>(a.weight??99)-(b.weight??99));
-
-  const cards=list.map(g=>{
-    const pc=playCountFor(g.name);
-    const wt = g.weight!=null? `<span class="bb diff">🎯 난이도 ${Number(g.weight).toFixed(1)}/5</span>`:"";
-    const pl = g.players? `<span class="bb players">👥 ${esc(g.players)}</span>`:"";
-    const ti = g.playtime? `<span class="bb time">⏱ ${esc(g.playtime)}</span>`:"";
-    const de = g.designers? `<div class="gdesigner">✎ ${esc(g.designers)}</div>`:"";
-    return `<div class="gcard ${g.owned?"":"gone"}">
-      <div class="corner"></div>
-      ${g.thumb?`<div class="thumbwrap"><img loading="lazy" src="${esc(g.thumb)}" alt=""></div>`:""}
-      <button class="gname" data-play="${esc(g.name)}" title="클릭하면 이 게임의 플레이 기록을 추가합니다">${esc(g.name)}</button>
-      <div class="gmeta">
-        ${g.vendor?`<span class="tag">${esc(g.vendor)}</span>`:""}
-        ${g.method?`<span class="tag method">${esc(g.method)}</span>`:""}
-      </div>
-      ${de}
-      ${(wt||pl||ti)?`<div class="bgg-badges">${wt}${pl}${ti}</div>`:""}
-      <div class="price">${won(g.price)}</div>
-      <div class="gfoot">
-        <div>
-          <div class="date">${esc(g.date||"구매일 미상")}</div>
-          ${pc?`<button class="plays-link" data-game="${esc(g.name)}">기록 ${pc}건 보기</button>`:""}
-          <div style="margin-top:4px">
-            ${g.bggId?`<span class="bgg-tag">BGG 연동됨</span>`:`<button class="bgg-link" data-bgg="${g.id}">＋ BGG 정보 가져오기</button>`}
-          </div>
-        </div>
-        <div style="text-align:right">
-          <span class="badge ${g.owned?"owned":"gone"}">${g.owned?"보유중":"방출"}</span>
-          <div class="row-actions" style="margin-top:6px;justify-content:flex-end">
-            ${g.bggId?`<button class="iconbtn" data-bgg="${g.id}">BGG</button>`:""}
-            <button class="iconbtn" data-edit="${g.id}">수정</button>
-            <button class="iconbtn" data-del="${g.id}">삭제</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join("");
-
-  const designers=allDesigners();
+  return list;
+}
+function gameCard(g){
+  const cover=g.thumb||g.image;
+  return `<button class="gcard2 ${g.owned?"":"gone"}" data-detail="${g.id}" title="${esc(g.name)}">
+    <div class="cover">${cover?`<img loading="lazy" src="${esc(cover)}" alt="">`:`<div class="cover-ph">🎲<span>표지 없음</span></div>`}</div>
+    ${g.owned?"":'<span class="gone-flag">방출</span>'}
+    <div class="gname2">${esc(g.name)}</div>
+  </button>`;
+}
+// 카드(그리드)만 다시 그림 — 검색창 등 컨트롤은 유지되어 한글 입력(IME)이 끊기지 않음
+function renderGrid(){
+  const grid=$("#grid"); if(!grid) return;
+  const list=applyFilters();
+  grid.innerHTML = list.length
+    ? list.map(gameCard).join("")
+    : `<div class="empty"><div class="big">조건에 맞는 게임이 없어요</div><div>필터를 바꾸거나 ‘게임 추가’로 새 게임을 등록해 보세요.</div></div>`;
+  grid.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>gameDetail(b.dataset.detail));
+}
+function renderCollection(){
   $("#view").innerHTML=`
     <div class="controls">
       <div class="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input id="searchInput" placeholder="게임 이름·업체·작가로 검색" value="${esc(filter.q)}">
+        <input id="searchInput" placeholder="게임 이름·업체로 검색" value="${esc(filter.q)}">
       </div>
       <div class="chips">
         <button class="fchip" data-status="all" aria-pressed="${filter.status==="all"}">전체</button>
@@ -579,7 +690,7 @@ function renderCollection(){
         <option value="weight_d" ${filter.sort==="weight_d"?"selected":""}>난이도 높은순</option>
         <option value="weight_a" ${filter.sort==="weight_a"?"selected":""}>난이도 낮은순</option>
       </select>
-      <select id="playSel" title="추천 인원">
+      <select id="playSel" title="플레이 가능 인원">
         <option value="all" ${filter.players==="all"?"selected":""}>인원 전체</option>
         <option value="1" ${filter.players==="1"?"selected":""}>1인 가능</option>
         <option value="2" ${filter.players==="2"?"selected":""}>2인 가능</option>
@@ -587,42 +698,161 @@ function renderCollection(){
         <option value="4" ${filter.players==="4"?"selected":""}>4인 가능</option>
         <option value="5" ${filter.players==="5"?"selected":""}>5인+ 가능</option>
       </select>
-      <select id="designerSel" title="작가">
-        <option value="all" ${filter.designer==="all"?"selected":""}>작가 전체</option>
-        ${designers.map(d=>`<option value="${esc(d)}" ${filter.designer===d?"selected":""}>${esc(d)}</option>`).join("")}
+      <select id="bestSel" title="BEST 인원">
+        <option value="all" ${filter.best==="all"?"selected":""}>BEST 전체</option>
+        <option value="1" ${filter.best==="1"?"selected":""}>BEST 1인</option>
+        <option value="2" ${filter.best==="2"?"selected":""}>BEST 2인</option>
+        <option value="3" ${filter.best==="3"?"selected":""}>BEST 3인</option>
+        <option value="4" ${filter.best==="4"?"selected":""}>BEST 4인</option>
+        <option value="5" ${filter.best==="5"?"selected":""}>BEST 5인+</option>
       </select>
       <button class="add" id="addGame">＋ 게임 추가</button>
-      <button class="ghost bgg-bulk" id="bulkBgg">BGG 일괄 연동</button>
     </div>
-    ${list.length?`<div class="grid">${cards}</div>`:`<div class="empty"><div class="big">조건에 맞는 게임이 없어요</div><div>필터를 바꾸거나 ‘게임 추가’로 새 게임을 등록해 보세요.</div></div>`}`;
+    <div class="grid2" id="grid"></div>`;
 
-  $("#searchInput").oninput=e=>{ filter.q=e.target.value; const p=e.target.selectionStart; renderCollection(); const inp=$("#searchInput"); inp.focus(); inp.setSelectionRange(p,p); };
-  $("#sortSel").onchange=e=>{ filter.sort=e.target.value; renderCollection(); };
-  $("#playSel").onchange=e=>{ filter.players=e.target.value; renderCollection(); };
-  $("#designerSel").onchange=e=>{ filter.designer=e.target.value; renderCollection(); };
-  document.querySelectorAll(".fchip").forEach(c=>c.onclick=()=>{ filter.status=c.dataset.status; renderCollection(); });
+  const si=$("#searchInput");
+  let composing=false;
+  si.addEventListener("compositionstart",()=>{ composing=true; });
+  si.addEventListener("compositionend",()=>{ composing=false; filter.q=si.value; renderGrid(); });
+  si.addEventListener("input",()=>{ if(composing) return; filter.q=si.value; renderGrid(); });
+  $("#sortSel").onchange=e=>{ filter.sort=e.target.value; renderGrid(); };
+  $("#playSel").onchange=e=>{ filter.players=e.target.value; renderGrid(); };
+  $("#bestSel").onchange=e=>{ filter.best=e.target.value; renderGrid(); };
+  document.querySelectorAll(".fchip").forEach(c=>c.onclick=()=>{
+    filter.status=c.dataset.status;
+    document.querySelectorAll(".fchip").forEach(x=>x.setAttribute("aria-pressed", x.dataset.status===filter.status));
+    renderGrid();
+  });
   $("#addGame").onclick=()=>gameModal();
-  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>gameModal(b.dataset.edit));
-  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delGame(b.dataset.del));
-  document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>playModal(null, b.dataset.play));
-  document.querySelectorAll("[data-game]").forEach(b=>b.onclick=()=>{ activeTab="plays"; filter.pq=b.dataset.game; renderTab(); });
-  document.querySelectorAll("[data-bgg]").forEach(b=>b.onclick=()=>bggModal(b.dataset.bgg));
-  $("#bulkBgg").onclick=bulkBgg;
+  renderGrid();
+}
+
+/* 게임 상세 모달: BGG 정보 / 구매 정보 / 슬리브 */
+function gameDetail(id){
+  const g=state.games.find(x=>x.id===id); if(!g) return;
+  const cover=g.image||g.thumb;
+  const pc=playCountFor(g.name);
+  const bggRows = g.bggId ? `
+    <div class="drow"><span>표지·연도</span><b>${g.bggYear?esc(g.bggYear):"-"}</b></div>
+    <div class="drow"><span>추천 인원</span><b>${esc(g.players||"-")}</b></div>
+    <div class="drow"><span>BEST 인원</span><b>${(g.best&&g.best.length)?esc(g.best.join(", "))+"인":"-"}</b></div>
+    <div class="drow"><span>플레이 시간</span><b>${esc(g.playtime||"-")}</b></div>
+    <div class="drow"><span>난이도</span><b>${g.weight!=null?Number(g.weight).toFixed(1)+" / 5":"-"}</b></div>
+    <div class="drow"><span>작가</span><b>${esc(g.designers||"-")}</b></div>`
+    : `<div class="dempty">아직 BGG 정보가 없어요. 아래 ‘BGG 정보 가져오기’를 눌러 불러오세요.</div>`;
+  openModal(`
+    <div class="mhead"><h3>${esc(g.name)}</h3><button class="x" data-close>×</button></div>
+    <div class="mbody detail">
+      ${cover?`<div class="detail-cover"><img src="${esc(cover)}" alt=""></div>`:`<div class="detail-cover ph"><div class="cover-ph">🎲<span>표지 없음</span></div></div>`}
+      <section class="dsec"><h4>게임 정보 (BGG)</h4>${bggRows}</section>
+      <section class="dsec"><h4>구매 정보</h4>
+        <div class="drow"><span>구매처</span><b>${esc(g.vendor||"-")}</b></div>
+        <div class="drow"><span>구매 방법</span><b>${esc(g.method||"-")}</b></div>
+        <div class="drow"><span>가격</span><b>${won(g.price)}</b></div>
+        <div class="drow"><span>구매일</span><b>${esc(g.date||"-")}</b></div>
+        <div class="drow"><span>상태</span><b>${g.owned?"보유중":"방출"+(g.disposal?" · "+esc(g.disposal):"")}</b></div>
+      </section>
+      <section class="dsec"><h4>슬리브</h4>
+        <textarea id="d_sleeve" class="sleeve-in" placeholder="슬리브 사이즈·수량을 적어두세요 (예: 56×87 100매, 65×90 50매)">${esc(g.sleeve||"")}</textarea>
+        <button class="btn save" id="d_sleeve_save" style="margin-top:8px">슬리브 저장</button>
+      </section>
+    </div>
+    <div class="mfoot detail-foot">
+      <button class="btn alt2" id="d_play">＋ 플레이 기록${pc?` (${pc})`:""}</button>
+      <button class="btn" id="d_bgg">${g.bggId?"BGG 다시":"BGG 가져오기"}</button>
+      <button class="btn" id="d_edit">수정</button>
+      <button class="btn cancel" id="d_del">삭제</button>
+    </div>`);
+  $("#d_sleeve_save").onclick=async()=>{ g.sleeve=$("#d_sleeve").value; await persist(); toast("슬리브 저장됨"); };
+  $("#d_play").onclick=()=>{ const nm=g.name; closeModal(); playModal(null, nm); };
+  $("#d_bgg").onclick=()=>bggModal(g.id);
+  $("#d_edit").onclick=()=>gameModal(g.id);
+  $("#d_del").onclick=()=>{ const gid=g.id; closeModal(); delGame(gid); };
+}
+
+/* 랜덤 추천: 플레이 인원 / 가능 시간 조건 */
+function recommendModal(){
+  openModal(`
+    <div class="mhead"><h3>🎲 랜덤 추천</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="two">
+        <div class="field"><label>플레이 인원</label>
+          <select id="rec_players">
+            <option value="any">상관없음</option>
+            <option value="1">1인</option><option value="2">2인</option>
+            <option value="3">3인</option><option value="4">4인</option><option value="5">5인+</option>
+          </select></div>
+        <div class="field"><label>가능 시간(분)</label><input id="rec_time" type="number" min="1" placeholder="예) 45"></div>
+      </div>
+      <label class="reclbl"><input type="checkbox" id="rec_owned" checked> 보유 중인 게임만</label>
+      <div class="hint">인원·시간 조건은 BGG 정보가 있는 게임에만 적용됩니다.</div>
+      <button class="btn save" id="rec_go" style="width:100%;margin-top:10px">추천 받기</button>
+      <div id="rec_out" class="rec-out"></div>
+    </div>`);
+  $("#rec_go").onclick=doRecommend;
+}
+function doRecommend(){
+  const pv=$("#rec_players").value;
+  const tv=parseInt($("#rec_time").value,10);
+  const ownedOnly=$("#rec_owned").checked;
+  let pool=state.games.filter(g=>!ownedOnly || g.owned);
+  if(pv!=="any") pool=pool.filter(g=>matchesPlayers(g,pv));
+  if(!isNaN(tv)) pool=pool.filter(g=> g.ptmax==null || g.ptmax<=tv );
+  const out=$("#rec_out");
+  if(!pool.length){ out.innerHTML=`<div class="dempty">조건에 맞는 게임이 없어요. 시간을 늘리거나 인원을 바꿔보세요.</div>`; return; }
+  const g=pool[Math.floor(Math.random()*pool.length)];
+  const cover=g.thumb||g.image;
+  out.innerHTML=`
+    <div class="rec-card">
+      ${cover?`<img src="${esc(cover)}" alt="">`:`<div class="cover-ph small">🎲</div>`}
+      <div class="rec-info">
+        <div class="rec-name">${esc(g.name)}</div>
+        <div class="rec-meta">${[g.players,g.playtime,(g.weight!=null?"난이도 "+Number(g.weight).toFixed(1):"")].filter(Boolean).map(esc).join(" · ")||"BGG 정보 없음"}</div>
+        <button class="btn" id="rec_detail">자세히 보기</button>
+      </div>
+    </div>
+    <button class="btn save" id="rec_again" style="width:100%;margin-top:10px">🎲 다시 뽑기</button>`;
+  $("#rec_again").onclick=doRecommend;
+  $("#rec_detail").onclick=()=>{ const gid=g.id; closeModal(); gameDetail(gid); };
 }
 
 /* ---------- plays ---------- */
+function allParticipantNames(){
+  const s=new Set();
+  state.plays.forEach(p=>(p.reviews||[]).forEach(r=>{ const n=revName(r); if(n) s.add(n); }));
+  return [...s].sort((a,b)=>a.localeCompare(b,"ko"));
+}
+function allPlayGameNames(){
+  const s=new Set();
+  state.plays.forEach(p=>{ const n=(p.name||"").trim(); if(n) s.add(n); });
+  return [...s].sort((a,b)=>a.localeCompare(b,"ko"));
+}
+function allPlayMonths(){
+  const s=new Set();
+  state.plays.forEach(p=>{ const k=dateKey(p.date).slice(0,7); if(k!=="0000-00"&&!k.startsWith("0000")) s.add(k); });
+  return [...s].sort().reverse();
+}
 function renderPlays(){
+  const viewerMode = PLAYS_ONLY && viewerName;
   let list=state.plays.slice().reverse();
   if(filter.pq){ list=list.filter(p=>(p.name||"").replace(/\s/g,"")===filter.pq.replace(/\s/g,"")); }
+  if(viewerMode){ list=list.filter(p=>(p.reviews||[]).some(r=>revName(r)===viewerName)); }
+  if(!PLAYS_ONLY){
+    if(playFilter.game!=="all") list=list.filter(p=>p.name===playFilter.game);
+    if(playFilter.person!=="all") list=list.filter(p=>(p.reviews||[]).some(r=>revName(r)===playFilter.person));
+    if(playFilter.ym!=="all") list=list.filter(p=>dateKey(p.date).slice(0,7)===playFilter.ym);
+  }
   const cards=list.map(p=>{
-    const revs=(p.reviews||[]).map(rv=>{
+    const revArr=p.reviews||[];
+    const revs=revArr.map(rv=>{
       const nm=revName(rv), col=revColor(rv), code=revCode(rv);
       const hasText=rv.text&&rv.text.trim();
       const gs=(rv.gscore!=null&&String(rv.gscore).trim()!=="");
-      return `<div class="rev ${hasText?"":"empty"}">
+      const mine=(viewerMode && nm===viewerName);
+      return `<div class="rev ${hasText?"":"empty"}${mine?" mine":""}">
         <div class="rev-top">
           <span class="nick" style="background:${col}">${esc(code)}</span>
-          <span class="nickname">${esc(nm)}${rv.winner?' <span class="winmark" title="승자">🏆</span>':""}</span>
+          <span class="nickname">${esc(nm)}${mine?' <span class="metag">나</span>':""}${rv.winner?' <span class="winmark" title="승자">🏆</span>':""}</span>
           ${gs?`<span class="gscore">${esc(String(rv.gscore))}점</span>`:""}
           ${rv.score!=null?`<span class="score">${rv.score}<small>/5</small></span>`:`<span class="stars">평점 없음</span>`}
         </div>
@@ -642,24 +872,61 @@ function renderPlays(){
           ${p.count?`<span class="cnt">${esc(p.count)}</span>`:""}
         </div>
         <div class="spacer" style="flex:1"></div>
-        <div class="row-actions">
+        ${PLAYS_ONLY?"":`<div class="row-actions">
           <button class="iconbtn share" data-share="${p.id}" data-sname="${esc(p.name)}">🔗 평가 링크</button>
           <button class="iconbtn" data-pedit="${p.id}">수정</button>
           <button class="iconbtn" data-pdel="${p.id}">삭제</button>
-        </div>
+        </div>`}
       </div>
       <div class="reviews">${revs||'<div class="rev empty"><div class="rev-text">참가자 기록 없음</div></div>'}</div>
     </div>`;
   }).join("");
 
-  $("#view").innerHTML=`
-    <div class="controls">
-      ${filter.pq?`<div class="search" style="max-width:none"><span style="font-size:13px;color:var(--muted)">‘${esc(filter.pq)}’ 기록만 보는 중</span></div><button class="fchip" id="clearPq">전체 보기</button>`:`<div style="flex:1;font-size:13px;color:var(--muted)">최근 기록부터 표시됩니다</div>`}
-      <button class="add alt" id="addPlay">＋ 플레이 기록 추가</button>
-    </div>
-    ${list.length?`<div class="plist">${cards}</div>`:`<div class="empty"><div class="big">아직 기록이 없어요</div><div>‘플레이 기록 추가’로 오늘 함께한 게임을 남겨 보세요.</div></div>`}`;
+  let controls, body;
+  if(PLAYS_ONLY){
+    const names=allParticipantNames();
+    controls=`
+      <div class="search" style="max-width:none;flex:1"><span style="font-size:13px;color:var(--muted)">${viewerName?`‘${esc(viewerName)}’ 님이 함께한 플레이`:"내 이름을 선택하면, 내가 함께한 플레이 기록을 볼 수 있어요"}</span></div>
+      <select id="viewerSel" title="내 이름">
+        <option value="">이름 선택</option>
+        ${names.map(n=>`<option value="${esc(n)}" ${viewerName===n?"selected":""}>${esc(n)}</option>`).join("")}
+      </select>`;
+    body = !viewerName
+      ? `<div class="empty"><div class="big">이름을 선택해 주세요</div><div>위에서 본인 이름을 고르면, 본인이 참여한 플레이 기록만 모아서 볼 수 있어요. 참여하지 않은 게임은 보이지 않습니다.</div></div>`
+      : (list.length? `<div class="plist">${cards}</div>` : `<div class="empty"><div class="big">참여한 기록이 없어요</div><div>‘${esc(viewerName)}’ 님이 참여한 플레이가 아직 없습니다.</div></div>`);
+  } else {
+    const gameNames=allPlayGameNames(), persons=allParticipantNames(), months=allPlayMonths();
+    const ymLabel=k=>k.slice(0,4)+"."+k.slice(5,7);
+    controls=`
+      <div class="pfilters">
+        <select id="playGameSel" title="게임별">
+          <option value="all" ${playFilter.game==="all"?"selected":""}>게임 전체</option>
+          ${gameNames.map(n=>`<option value="${esc(n)}" ${playFilter.game===n?"selected":""}>${esc(n)}</option>`).join("")}
+        </select>
+        <select id="playPersonSel" title="참여자별">
+          <option value="all" ${playFilter.person==="all"?"selected":""}>참여자 전체</option>
+          ${persons.map(n=>`<option value="${esc(n)}" ${playFilter.person===n?"selected":""}>${esc(n)}</option>`).join("")}
+        </select>
+        <select id="playYmSel" title="일자별">
+          <option value="all" ${playFilter.ym==="all"?"selected":""}>전체 기간</option>
+          ${months.map(k=>`<option value="${k}" ${playFilter.ym===k?"selected":""}>${ymLabel(k)}</option>`).join("")}
+        </select>
+        ${(playFilter.game!=="all"||playFilter.person!=="all"||playFilter.ym!=="all")?`<button class="fchip" id="playClear">필터 해제</button>`:""}
+      </div>
+      <div class="spacer" style="flex:1"></div>
+      <button class="actbtn" id="sharePlays">🔗 기록만 공유</button><button class="add alt" id="addPlay">＋ 플레이 기록 추가</button>`;
+    body = list.length? `<div class="plist">${cards}</div>` : `<div class="empty"><div class="big">${(playFilter.game!=="all"||playFilter.person!=="all"||playFilter.ym!=="all")?"조건에 맞는 기록이 없어요":"아직 기록이 없어요"}</div><div>${(playFilter.game!=="all"||playFilter.person!=="all"||playFilter.ym!=="all")?"필터를 바꾸거나 해제해 보세요.":"‘플레이 기록 추가’로 오늘 함께한 게임을 남겨 보세요."}</div></div>`;
+  }
 
-  $("#addPlay").onclick=()=>playModal();
+  $("#view").innerHTML=`<div class="controls">${controls}</div>${body}`;
+
+  if($("#viewerSel")) $("#viewerSel").onchange=e=>{ viewerName=e.target.value||null; renderPlays(); };
+  if($("#playGameSel")) $("#playGameSel").onchange=e=>{ playFilter.game=e.target.value; renderPlays(); };
+  if($("#playPersonSel")) $("#playPersonSel").onchange=e=>{ playFilter.person=e.target.value; renderPlays(); };
+  if($("#playYmSel")) $("#playYmSel").onchange=e=>{ playFilter.ym=e.target.value; renderPlays(); };
+  if($("#playClear")) $("#playClear").onclick=()=>{ playFilter={game:"all",person:"all",ym:"all"}; renderPlays(); };
+  if($("#addPlay")) $("#addPlay").onclick=()=>playModal();
+  if($("#sharePlays")) $("#sharePlays").onclick=copyPlaysLink;
   if($("#clearPq")) $("#clearPq").onclick=()=>{ filter.pq=null; renderPlays(); };
   document.querySelectorAll("[data-pedit]").forEach(b=>b.onclick=()=>playModal(b.dataset.pedit));
   document.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>delPlay(b.dataset.pdel));
@@ -689,21 +956,25 @@ function gameModal(id){
       <div class="field"><label>보유 상태</label>
         <select id="f_owned"><option value="1" ${g.owned?"selected":""}>보유중</option><option value="0" ${!g.owned?"selected":""}>방출(처분/양도)</option></select>
       </div>
+      <div class="field"><label>표지 이미지 URL (선택 · BGG 대신 직접 지정)</label><input id="f_thumb" value="${esc(g.thumb||"")}" placeholder="https://...jpg"></div>
+      <div class="field"><label>슬리브 메모 (선택)</label><input id="f_sleeve" value="${esc(g.sleeve||"")}" placeholder="예) 56×87 100매"></div>
     </div>
     <div class="mfoot"><button class="btn cancel" data-close>취소</button>${id?`<button class="btn bgg" id="bggFromEdit">BGG에서 가져오기</button>`:""}<button class="btn save" id="saveGame">저장</button></div>`);
   if(id&&$("#bggFromEdit")) $("#bggFromEdit").onclick=()=>{ closeModal(); bggModal(id); };
   $("#saveGame").onclick=async()=>{
     const name=$("#f_name").value.trim(); if(!name){ $("#f_name").focus(); return; }
+    const thumb=$("#f_thumb").value.trim(), sleeve=$("#f_sleeve").value.trim();
     const data={name, vendor:$("#f_vendor").value.trim(), method:$("#f_method").value.trim(),
       price:$("#f_price").value?parseInt($("#f_price").value):null, date:normDate($("#f_date").value.trim()),
-      owned:$("#f_owned").value==="1"};
+      owned:$("#f_owned").value==="1", sleeve};
+    if(thumb) data.thumb=thumb;
     if(id){ Object.assign(state.games.find(x=>x.id===id),data); }
     else { state.games.push({id:"g"+Date.now(), ...data, disposal:data.owned?"":"방출"}); }
     await persist(); closeModal(); renderStats(); renderTab();
   };
 }
 function delGame(id){ const g=state.games.find(x=>x.id===id);
-  if(confirm(`‘${g.name}’ 을(를) 목록에서 삭제할까요?`)){ state.games=state.games.filter(x=>x.id!==id); persist(); renderStats(); renderCollection(); } }
+  if(confirm(`‘${g.name}’ 을(를) 목록에서 삭제할까요?`)){ state.games=state.games.filter(x=>x.id!==id); persist(); renderStats(); renderTab(); } }
 
 let draftReviews=[];
 function makeParticipant(src){
@@ -753,6 +1024,13 @@ function playModal(id, presetName){
     const name=$("#p_name").value.trim(); if(!name){ $("#p_name").focus(); return; }
     collectDraft();
     const reviews=draftReviews.filter(r=>(r.name&&r.name.trim()) || r.score!=null || (r.text&&r.text.trim()) || (r.gscore!=null&&String(r.gscore).trim()!==""));
+    // 참가자 이름을 닉네임 목록에 보존(다음 기록에서 칩으로 재사용)
+    reviews.forEach(r=>{
+      const nm=(r.name||"").trim(); if(!nm) return;
+      if(!state.nicks.find(n=>n.name===nm)){
+        state.nicks.push({code:(r.code||nm.slice(0,2).toUpperCase()), name:nm, color:r.color||NICK_PALETTE[state.nicks.length%NICK_PALETTE.length]});
+      }
+    });
     const playersField=$("#p_players").value.trim() || (reviews.length? String(reviews.length):"");
     const data={name, date:normDate($("#p_date").value.trim()), players:playersField,
       winner:"", count:$("#p_count").value.trim(), reviews};
@@ -794,15 +1072,17 @@ function renderDraftReviews(){
         <label class="minlbl">게임 점수<input class="gscore" data-gscore="${i}" value="${esc(r.gscore??"")}" placeholder="예) 98 또는 98:86"></label>
         <div class="scorerow"><span class="minlbl">평점</span>
           <input type="range" min="0" max="5" step="0.1" value="${r.score??0}" data-score="${i}">
-          <span class="scoreval" id="sv${i}">${r.score!=null?r.score:"–"}</span>
+          <input class="scorenum" type="number" min="0" max="5" step="0.1" data-scorenum="${i}" value="${r.score!=null?r.score:""}" placeholder="–">
+          <span class="scoreunit">/5</span>
         </div>
       </div>
-      <textarea data-text="${i}" placeholder="한 줄 평">${esc(r.text)}</textarea>
+      <textarea class="revtext" data-text="${i}" placeholder="한 줄 평">${esc(r.text)}</textarea>
     </div>`;
   }).join("");
   document.querySelectorAll("[data-name]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.name].name=e.target.value; });
   document.querySelectorAll("[data-gscore]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.gscore].gscore=e.target.value; });
-  document.querySelectorAll("[data-score]").forEach(el=>el.oninput=e=>{ const i=+e.target.dataset.score; const v=parseFloat(e.target.value); draftReviews[i].score=v; $("#sv"+i).textContent=v; });
+  document.querySelectorAll("[data-score]").forEach(el=>el.oninput=e=>{ const i=+e.target.dataset.score; const v=parseFloat(e.target.value); draftReviews[i].score=v; const n=document.querySelector('[data-scorenum="'+i+'"]'); if(n) n.value=v; });
+  document.querySelectorAll("[data-scorenum]").forEach(el=>el.oninput=e=>{ const i=+e.target.dataset.scorenum; let v=e.target.value===""?null:parseFloat(e.target.value); if(v!=null){ if(v<0)v=0; if(v>5)v=5; } draftReviews[i].score=v; const s=document.querySelector('[data-score="'+i+'"]'); if(s) s.value=(v??0); });
   document.querySelectorAll("[data-text]").forEach(el=>el.oninput=e=>{ draftReviews[+e.target.dataset.text].text=e.target.value; });
   document.querySelectorAll("[data-win]").forEach(el=>el.onclick=e=>{ const i=+e.currentTarget.dataset.win; draftReviews[i].winner=!draftReviews[i].winner; collectDraft(); renderDraftReviews(); });
   document.querySelectorAll("[data-rm]").forEach(el=>el.onclick=e=>{ collectDraft(); draftReviews.splice(+e.target.dataset.rm,1); renderNickChips(); renderDraftReviews(); });
@@ -817,10 +1097,124 @@ function delPlay(id){ const p=state.plays.find(x=>x.id===id);
 
 /* ---------- tabs ---------- */
 function renderTab(){
+  if(PLAYS_ONLY){ activeTab="plays"; renderPlays(); return; }
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.tab===activeTab));
-  if(activeTab==="collection"){ filter.pq=null; renderCollection(); } else renderPlays();
+  if(activeTab==="collection"){ filter.pq=null; renderCollection(); }
+  else if(activeTab==="stats"){ renderStatsTab(); }
+  else renderPlays();
 }
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ activeTab=t.dataset.tab; renderTab(); });
+if(document.getElementById("recBtn")) document.getElementById("recBtn").onclick=recommendModal;
+if(document.getElementById("bulkBtn")) document.getElementById("bulkBtn").onclick=bulkBgg;
+
+/* ---------- 통계 ---------- */
+function barChart(rows, opt){
+  opt=opt||{};
+  const max=Math.max(1,...rows.map(r=>r.value));
+  const fmt=opt.fmt||(v=>v);
+  return `<div class="chart">${rows.map(r=>`
+    <div class="bar-row">
+      <div class="bar-label">${esc(r.label)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(r.value/max*100).toFixed(1)}%;background:${opt.color||"var(--felt)"}">${r.value?`<span>${esc(String(fmt(r.value)))}${r.sub?` <em>(${esc(r.sub)})</em>`:""}</span>`:""}</div></div>
+    </div>`).join("")}</div>`;
+}
+let statsSub="purchase"; // 'purchase' | 'play'
+function renderStatsTab(){
+  const pad=n=>String(n).padStart(2,"0");
+  const now=new Date();
+  const curYmKey=`${now.getFullYear()}-${pad(now.getMonth()+1)}`;
+  const curYear=String(now.getFullYear());
+
+  // ===== 요약 =====
+  const totalSpend=state.games.reduce((a,g)=>a+(g.price||0),0);
+  const summary=`
+    <div class="kpis sumbar">
+      <div class="kpi"><div class="kn">${state.games.length}</div><div class="kl">전체 구매</div></div>
+      <div class="kpi"><div class="kn">${state.games.filter(g=>g.owned).length}</div><div class="kl">보유 중인 게임</div></div>
+      <div class="kpi"><div class="kn">${state.plays.length}</div><div class="kl">총 플레이</div></div>
+      <div class="kpi"><div class="kn">₩${(totalSpend/10000).toFixed(0)}<small>만</small></div><div class="kl">전체 누적 금액</div></div>
+    </div>`;
+
+  const subnav=`
+    <div class="substats">
+      <button class="subtab ${statsSub==="purchase"?"on":""}" data-sub="purchase">구매 통계</button>
+      <button class="subtab ${statsSub==="play"?"on":""}" data-sub="play">플레이 통계</button>
+    </div>`;
+
+  let panel="";
+  if(statsSub==="purchase"){
+    // 연도별 구매 금액 / 수량
+    const byYear={};
+    state.games.forEach(g=>{ const k=dateKey(g.date); const y=k.slice(0,4); if(y==="0000") return; (byYear[y]=byYear[y]||{amt:0,cnt:0}); byYear[y].amt+=(g.price||0); byYear[y].cnt++; });
+    const years=Object.keys(byYear).sort();
+    const yearAmtRows=years.map(y=>({label:y, value:Math.round(byYear[y].amt/10000)}));
+    const yearCntRows=years.map(y=>({label:y, value:byYear[y].cnt}));
+    panel=`
+      <div class="stats-grid">
+        <div class="scard wide">
+          <h3>총 구매 금액</h3>
+          <div class="bignum">₩${totalSpend.toLocaleString()}</div>
+          <div class="subnote">전체 ${state.games.length}개 · 보유 중 가치 ₩${state.games.filter(g=>g.owned).reduce((a,g)=>a+(g.price||0),0).toLocaleString()}</div>
+        </div>
+        <div class="scard">
+          <h3>연도별 구매 금액 <small>(만원)</small></h3>
+          ${years.length?barChart(yearAmtRows,{color:"var(--gold)",fmt:v=>v+"만"}):`<div class="dempty">구매일 정보가 있는 게임이 없어요.</div>`}
+        </div>
+        <div class="scard">
+          <h3>연도별 구매 수량</h3>
+          ${years.length?barChart(yearCntRows,{color:"var(--owned)"}):`<div class="dempty">데이터가 없어요.</div>`}
+        </div>
+      </div>`;
+  } else {
+    // 가장 많이 한 게임 (전체)
+    const cntAll={}; state.plays.forEach(p=>{ const n=(p.name||"").trim(); if(n) cntAll[n]=(cntAll[n]||0)+1; });
+    const topAll=Object.entries(cntAll).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([n,c])=>({label:n,value:c}));
+    // 최근 한 달
+    const cntMonth={}; state.plays.forEach(p=>{ if(dateKey(p.date).slice(0,7)===curYmKey){ const n=(p.name||"").trim(); if(n) cntMonth[n]=(cntMonth[n]||0)+1; } });
+    const topMonth=Object.entries(cntMonth).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n,c])=>({label:n,value:c}));
+    // 올해(연도별 최근)
+    const cntYear={}; state.plays.forEach(p=>{ if(dateKey(p.date).slice(0,4)===curYear){ const n=(p.name||"").trim(); if(n) cntYear[n]=(cntYear[n]||0)+1; } });
+    const topYear=Object.entries(cntYear).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n,c])=>({label:n,value:c}));
+    // 함께 플레이한 사람 + 승리/승률
+    const per={};
+    state.plays.forEach(p=>(p.reviews||[]).forEach(r=>{ const n=revName(r); if(!n) return; (per[n]=per[n]||{plays:0,wins:0}); per[n].plays++; if(r.winner) per[n].wins++; }));
+    const people=Object.entries(per).sort((a,b)=>b[1].plays-a[1].plays);
+    const peopleRows=people.map(([n,v])=>({label:n,value:v.plays}));
+    const winRows=people.filter(([,v])=>v.wins>0).sort((a,b)=>b[1].wins-a[1].wins).map(([n,v])=>({label:n,value:v.wins}));
+    const rateRows=people.filter(([,v])=>v.plays>0).map(([n,v])=>({label:n,value:Math.round(v.wins/v.plays*100), sub:`${v.wins}/${v.plays}`}))
+                         .sort((a,b)=>b.value-a.value);
+    panel=`
+      <div class="stats-grid">
+        <div class="scard">
+          <h3>가장 많이 한 게임 <small>전체</small></h3>
+          ${topAll.length?barChart(topAll,{color:"var(--felt)"}):`<div class="dempty">플레이 기록이 없어요.</div>`}
+        </div>
+        <div class="scard">
+          <h3>최근 한 달 많이 한 게임 <small>${curYmKey.replace("-",".")}</small></h3>
+          ${topMonth.length?barChart(topMonth,{color:"var(--jh)"}):`<div class="dempty">이번 달 기록이 없어요.</div>`}
+        </div>
+        <div class="scard">
+          <h3>올해 많이 한 게임 <small>${curYear}</small></h3>
+          ${topYear.length?barChart(topYear,{color:"var(--jh)"}):`<div class="dempty">올해 기록이 없어요.</div>`}
+        </div>
+        <div class="scard">
+          <h3>함께 플레이한 사람</h3>
+          ${peopleRows.length?barChart(peopleRows,{color:"var(--owned)"}):`<div class="dempty">참가자 기록이 없어요.</div>`}
+        </div>
+        <div class="scard">
+          <h3>승리 횟수</h3>
+          ${winRows.length?barChart(winRows,{color:"var(--gold)"}):`<div class="dempty">승자 기록이 없어요. (기록에서 🏆로 표시)</div>`}
+        </div>
+        <div class="scard">
+          <h3>승률 <small>승리/플레이</small></h3>
+          ${rateRows.length?barChart(rateRows,{color:"var(--felt2)",fmt:v=>v+"%"}):`<div class="dempty">데이터가 없어요.</div>`}
+        </div>
+      </div>`;
+  }
+
+  $("#view").innerHTML=`${summary}${subnav}${panel}`;
+  document.querySelectorAll(".subtab").forEach(b=>b.onclick=()=>{ statsSub=b.dataset.sub; renderStatsTab(); });
+}
 
 /* ---------- BoardGameGeek integration ---------- */
 // ── BGG 연동 ───────────────────────────────────────────────
@@ -943,6 +1337,7 @@ function parseThing(it){
   if(ptMin&&ptMax&&ptMin!==ptMax) playtime=ptMin+"–"+ptMax+"분";
   else if(pt&&pt!=="0") playtime=pt+"분";
   else if(ptMax&&ptMax!=="0") playtime=ptMax+"분";
+  const ptMaxNum=parseInt(ptMax||pt||ptMin||"",10);
   return {
     id: it.getAttribute("id"),
     name: primary?primary.getAttribute("value"):"",
@@ -953,7 +1348,9 @@ function parseThing(it){
     designers: designers.length?designers.join(", "):"",
     pmin: mn?parseInt(mn,10):null,
     pmax: mx?parseInt(mx,10):null,
+    best: best.map(n=>parseInt(n,10)).filter(n=>!isNaN(n)),
     playtime,
+    ptmax: isNaN(ptMaxNum)?null:ptMaxNum,
     players
   };
 }
@@ -961,7 +1358,7 @@ function applyBgg(game, t){
   game.bggId=t.id; game.thumb=t.thumb; game.image=t.image;
   game.weight=t.weight; game.players=t.players; game.bggYear=t.year;
   game.designers=t.designers; game.pmin=t.pmin; game.pmax=t.pmax;
-  game.playtime=t.playtime;
+  game.best=t.best; game.playtime=t.playtime; game.ptmax=t.ptmax;
 }
 
 async function bggModal(gid){
@@ -1002,7 +1399,7 @@ async function bggModal(gid){
   };
   $("#bgg_go").onclick=run;
   $("#bgg_q").onkeydown=e=>{ if(e.key==="Enter") run(); };
-  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","playtime","bggYear"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderCollection(); };
+  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","best","playtime","ptmax","bggYear"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderTab(); };
   run();
 }
 
@@ -1072,6 +1469,11 @@ async function copyShareLink(playId, gameName){
   try{ await navigator.clipboard.writeText(url); toast(STORAGE_MODE==="firebase"?"평가 링크 복사됨":"링크 복사됨 · 동기화하려면 Firebase 설정 필요"); }
   catch(e){ prompt("이 링크를 친구에게 보내세요:", url); }
 }
+async function copyPlaysLink(){
+  const url = location.origin + location.pathname + "?view=plays";
+  try{ await navigator.clipboard.writeText(url); toast(STORAGE_MODE==="firebase"?"플레이 기록 공유 링크 복사됨":"링크 복사됨 · 공유하려면 Firebase 설정 필요"); }
+  catch(e){ prompt("플레이 기록만 보여주는 공유 링크:", url); }
+}
 async function initRatePage(){
   document.body.classList.add("rate-mode");
   const playId = URLP.get("rate");
@@ -1118,6 +1520,7 @@ async function initRatePage(){
 /* ---------- init ---------- */
 (async function(){
   if(RATE_MODE){ await initRatePage(); return; }
+  if(PLAYS_ONLY){ document.body.classList.add("plays-only"); activeTab="plays"; }
   await load(); setStorageBadge(); renderStats(); renderTab();
 })();
 </script>
