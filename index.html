@@ -296,10 +296,15 @@ body.plays-only .tabs{pointer-events:none}
 .scoreunit{font-size:12px;color:var(--muted)}
 .scoreval{font-family:"Black Han Sans";font-size:17px;min-width:30px;text-align:right;color:var(--felt)}
 .nickchips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
-.nickchip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1.5px solid var(--line);
-  color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;transition:.12s}
+.nickchip{display:inline-flex;align-items:center;background:var(--paper);border:1.5px solid var(--line);
+  color:var(--ink);border-radius:999px;font-size:13px;transition:.12s;overflow:hidden}
 .nickchip:hover{border-color:var(--felt);background:#fff}
 .nickchip .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.nickchip-add{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:inherit;
+  font:inherit;font-size:13px;padding:6px 6px 6px 12px;cursor:pointer}
+.nickchip-x{background:none;border:0;border-left:1px solid var(--line);color:var(--muted);
+  font-size:15px;line-height:1;padding:6px 10px;cursor:pointer}
+.nickchip-x:hover{color:var(--gone)}
 .addnick{background:#fff;border:1.5px dashed var(--line);color:var(--muted);border-radius:11px;
   padding:9px;width:100%;font-size:13px}
 .mfoot{display:flex;gap:10px;justify-content:flex-end;padding:16px 22px;border-top:1px solid var(--line)}
@@ -700,14 +705,20 @@ function applyPendingReview(pr){
   if(!p) return false;                 // 아직 그 기록이 없으면 보류(삭제 안 함)
   if(!p.reviews) p.reviews=[];
   const name = (pr.name||"손님").trim();
+  const wantCode = (pr.code!=null && String(pr.code).trim()!=="") ? String(pr.code).trim() : null;
   const ex = p.reviews.find(r=>(r.name||"")===name);
-  const base = ex || {name, code:name.slice(0,2).toUpperCase(),
+  const base = ex || {name, code: wantCode || name.slice(0,2).toUpperCase(),
                       color:NICK_PALETTE[p.reviews.length%NICK_PALETTE.length], winner:false};
+  if(wantCode) base.code = wantCode;   // 친구가 표시 코드를 지정하면 반영
   base.gscore = pr.gscore!=null?pr.gscore:(base.gscore||"");
   base.score  = (pr.score!=null && pr.score!=="")?Number(pr.score):(base.score??null);
   base.text   = pr.text!=null?pr.text:(base.text||"");
   if(pr.photo) base.photo = pr.photo;
   if(!ex) p.reviews.push(base);
+  // 참가자 목록(칩)에도 기억 — 다음 기록에서 재사용 + 표시 코드 유지
+  const exNick = state.nicks.find(n=>n.name===name);
+  if(!exNick){ state.nicks.push({code:base.code, name, color:base.color}); }
+  else if(wantCode && exNick.code!==wantCode){ exNick.code=wantCode; }
   return true;
 }
 let toastT;
@@ -1095,7 +1106,7 @@ function renderPlays(){
           <div class="ng-title">내 이름을 입력해 주세요</div>
           <div class="ng-desc">기록에 적힌 본인 이름을 입력하면, 본인이 참여한 플레이만 모아서 보여드려요. 참여하지 않은 게임은 보이지 않습니다.</div>
           <div class="ng-row">
-            <input id="viewerInput" lang="ko" placeholder="예) 김나영" autocomplete="off">
+            <input id="viewerInput" lang="ko" placeholder="예) 이름 / 닉네임" autocomplete="off">
             <button class="btn save" id="viewerGo">확인</button>
           </div>
         </div>`;
@@ -1337,9 +1348,16 @@ function renderNickChips(){
   const wrap=$("#nickChips"); if(!wrap) return;
   const used=new Set(draftReviews.map(r=>r.name));
   const chips=state.nicks.filter(n=>!used.has(n.name)).map(n=>
-    `<button class="nickchip" data-add="${esc(n.name)}"><span class="dot" style="background:${n.color}"></span>${esc(n.name)}</button>`).join("");
+    `<span class="nickchip"><button class="nickchip-add" data-add="${esc(n.name)}"><span class="dot" style="background:${n.color}"></span>${esc(n.name)}</button><button class="nickchip-x" data-del="${esc(n.name)}" title="이 참가자 삭제">×</button></span>`).join("");
   wrap.innerHTML = chips || `<span class="hint">아래 ‘새 참가자 직접 추가’로 함께한 사람을 등록하세요.</span>`;
   wrap.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addParticipantByName(b.dataset.add));
+  wrap.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>deleteNick(b.dataset.del));
+}
+function deleteNick(name){
+  if(!confirm(`참가자 ‘${name}’ 을(를) 목록에서 지울까요?\n이미 저장된 과거 기록은 그대로 유지됩니다.`)) return;
+  state.nicks = state.nicks.filter(n=>n.name!==name);
+  persist(true);
+  renderNickChips();
 }
 function renderDraftReviews(){
   $("#revWrap").innerHTML=draftReviews.map((r,i)=>{
@@ -1839,6 +1857,7 @@ async function initRatePage(){
     <div class="reyebrow">플레이 평가 남기기</div>
     <div class="rk">${esc(game)}</div>
     <div class="field"><label>이름 / 닉네임</label><input id="r_name" lang="ko" placeholder="예) 민수"></div>
+    <div class="field"><label>표시 코드 (선택 · 비우면 자동)</label><input id="r_code" lang="ko" maxlength="6" placeholder="예) 민수 또는 MS"></div>
     <div class="field"><label>게임 점수 (선택)</label><input id="r_g" placeholder="예) 98 또는 98:86"></div>
     <div class="field"><label>평점</label>
       <div class="scorerow"><input id="r_s" type="range" min="0" max="5" step="0.1" value="4"><input class="scorenum" id="r_sn" type="number" min="0" max="5" step="0.1" value="4"><span class="scoreunit">/5</span></div>
@@ -1858,6 +1877,7 @@ async function initRatePage(){
     const name=document.getElementById("r_name").value.trim();
     if(!name){ document.getElementById("r_name").focus(); return; }
     const payload={ playId, game, name,
+      code:document.getElementById("r_code").value.trim(),
       gscore:document.getElementById("r_g").value.trim(),
       score:parseFloat(document.getElementById("r_s").value),
       text:document.getElementById("r_t").value.trim(), ts:Date.now() };
@@ -1896,6 +1916,7 @@ async function initMultiRatePage(view){
       <div class="reyebrow">여러 게임 평가 남기기</div>
       <div class="rk" style="font-size:18px">${items.length}개 게임</div>
       <div class="field"><label>이름 / 닉네임 (한 번만 입력)</label><input id="mr_name" lang="ko" placeholder="예) 민수"></div>
+      <div class="field"><label>표시 코드 (선택 · 비우면 자동)</label><input id="mr_code" lang="ko" maxlength="6" placeholder="예) 민수 또는 MS"></div>
     </div>
     ${sections}
     <button class="add" id="mr_submit" style="width:100%">전체 평가 제출</button>
@@ -1908,6 +1929,7 @@ async function initMultiRatePage(view){
   document.getElementById("mr_submit").onclick=async()=>{
     const name=document.getElementById("mr_name").value.trim();
     if(!name){ document.getElementById("mr_name").focus(); return; }
+    const code=document.getElementById("mr_code").value.trim();
     try{
       let sent=0;
       for(let i=0;i<items.length;i++){
@@ -1916,7 +1938,7 @@ async function initMultiRatePage(view){
         const t=(document.querySelector('.mg_t[data-i="'+i+'"]').value||"").trim();
         const touched = g || t || photos[i] || (document.querySelector('.mg_sn[data-i="'+i+'"]').value!=="4");
         if(!touched) continue; // 건드리지 않은 게임은 제출 안 함
-        const payload={ playId:items[i].id, game:items[i].name, name, gscore:g, score:s, text:t, ts:Date.now() };
+        const payload={ playId:items[i].id, game:items[i].name, name, code, gscore:g, score:s, text:t, ts:Date.now() };
         if(photos[i]) payload.photo=photos[i];
         await fb.addDoc(fb.collection(fb.db,"pending_reviews"), payload); sent++;
       }
