@@ -613,11 +613,13 @@ async function load(){
     }
     // 실시간 동기화: 다른 기기에서 바뀌면 자동 반영
     fb.onSnapshot(ref, s=>{
+      // 일괄 연동(BGG) 진행 중에는 방금 연동한 내용이 저장 전에 덮이지 않도록 건너뜀
+      if(BULK_RUNNING) return;
       if(s && s.exists()){
         const d=s.data();
         state.games=d.games||[]; state.plays=d.plays||[]; state.nicks=d.nicks||state.nicks;
         migrateDates();
-        if(!RATE_MODE && !BULK_RUNNING){ renderStats(); renderTab(); }
+        if(!RATE_MODE){ renderStats(); renderTab(); }
       }
     });
     subscribePending();
