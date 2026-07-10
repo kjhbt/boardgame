@@ -598,7 +598,7 @@ async function rawSet(k,v){
 }
 async function sget(k){ try{ const v=await rawGet(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
 async function sset(k,v){ try{ await rawSet(k, JSON.stringify(v)); toast(); }catch(e){ console.error("save fail",e); } }
-let state={games:[],plays:[],nicks:[],groups:[]};
+let state={games:[],plays:[],nicks:[],groups:[],bggCache:{}};
 
 async function initFirebase(){
   if(!FB_ON) return false;
@@ -660,10 +660,10 @@ async function load(){
     try{ snap = await fb.getDoc(ref); }catch(e){ snap=null; }
     if(snap && snap.exists()){
       const d=snap.data();
-      state={games:d.games||[], plays:d.plays||[], nicks:d.nicks||SEED.nicknames, groups:d.groups||[]};
+      state={games:d.games||[], plays:d.plays||[], nicks:d.nicks||SEED.nicknames, groups:d.groups||[], bggCache:d.bggCache||{}};
       migrateDates();
     }else{
-      state={games:SEED.games, plays:SEED.plays, nicks:SEED.nicknames, groups:[]};
+      state={games:SEED.games, plays:SEED.plays, nicks:SEED.nicknames, groups:[], bggCache:{}};
       migrateDates();
       await fb.setDoc(ref, plain(state));
     }
@@ -673,7 +673,7 @@ async function load(){
       if(BULK_RUNNING) return;
       if(s && s.exists()){
         const d=s.data();
-        state.games=d.games||[]; state.plays=d.plays||[]; state.nicks=d.nicks||state.nicks; state.groups=d.groups||state.groups||[];
+        state.games=d.games||[]; state.plays=d.plays||[]; state.nicks=d.nicks||state.nicks; state.groups=d.groups||state.groups||[]; state.bggCache=d.bggCache||state.bggCache||{};
         migrateDates();
         if(!RATE_MODE){ renderStats(); renderTab(); }
       }
@@ -686,7 +686,7 @@ async function load(){
   STORAGE_MODE = HAS_LOCAL ? "local" : "memory";
   const seeded = await sget("bg_seeded_v2");
   if(!seeded){
-    state = {games:SEED.games, plays:SEED.plays, nicks:SEED.nicknames, groups:[]};
+    state = {games:SEED.games, plays:SEED.plays, nicks:SEED.nicknames, groups:[], bggCache:{}};
     migrateDates();
     await rawSet("bg_seeded_v2","1");
     await persist(true);
@@ -695,6 +695,7 @@ async function load(){
     state.plays = await sget("bg_plays") || [];
     state.nicks = await sget("bg_nicks") || SEED.nicknames;
     state.groups = await sget("bg_groups") || [];
+    state.bggCache = await sget("bg_bggcache") || {};
     migrateDates();
   }
   await clearSeedPlaysOnce();
@@ -723,6 +724,7 @@ async function persist(silent){
     await rawSet("bg_plays", JSON.stringify(state.plays));
     await rawSet("bg_nicks", JSON.stringify(state.nicks));
     await rawSet("bg_groups", JSON.stringify(state.groups||[]));
+    await rawSet("bg_bggcache", JSON.stringify(state.bggCache||{}));
     if(!silent) toast();
   }catch(e){ console.error(e); }
 }
@@ -892,6 +894,8 @@ function applyFilters(){
   else if(filter.sort==="price_a") list.sort((a,b)=>(a.price||0)-(b.price||0));
   else if(filter.sort==="weight_d") list.sort((a,b)=>(b.weight??-1)-(a.weight??-1));
   else if(filter.sort==="weight_a") list.sort((a,b)=>(a.weight??99)-(b.weight??99));
+  else if(filter.sort==="bggrating_d") list.sort((a,b)=>(b.bggRating??-1)-(a.bggRating??-1));
+  else if(filter.sort==="bggrank_a") list.sort((a,b)=>(a.bggRank??Infinity)-(b.bggRank??Infinity));
   return list;
 }
 // BGG(geekdo) 이미지 주소는 크기·경로가 서명되어 있어 임의로 크기를 바꾸면 깨진다.
@@ -939,6 +943,8 @@ function renderCollection(){
         <option value="price_a" ${filter.sort==="price_a"?"selected":""}>가격 낮은순</option>`}
         <option value="weight_d" ${filter.sort==="weight_d"?"selected":""}>난이도 높은순</option>
         <option value="weight_a" ${filter.sort==="weight_a"?"selected":""}>난이도 낮은순</option>
+        <option value="bggrating_d" ${filter.sort==="bggrating_d"?"selected":""}>BGG 평점 높은순</option>
+        <option value="bggrank_a" ${filter.sort==="bggrank_a"?"selected":""}>BGG 랭킹 높은순</option>
       </select>
       <select id="playSel" title="플레이 가능 인원">
         <option value="all" ${filter.players==="all"?"selected":""}>인원 전체</option>
@@ -1035,6 +1041,7 @@ function gameDetail(id){
     </div>
     <div class="mfoot detail-foot">
       <button class="btn alt2" id="d_play">＋ 플레이 기록${pc?` (${pc})`:""}</button>
+      ${g.bggId?`<button class="btn" id="d_refresh">🔄 새로고침</button>`:""}
       <button class="btn" id="d_bgg">${g.bggId?"BGG 다시":"BGG 가져오기"}</button>
       <button class="btn" id="d_edit">수정</button>
       <button class="btn cancel" id="d_del">삭제</button>
@@ -1043,6 +1050,13 @@ function gameDetail(id){
   $("#d_memo_save").onclick=async()=>{ g.memo=$("#d_memo").value; await persist(); toast("메모 저장됨"); };
   $("#d_play").onclick=()=>{ const nm=g.name; closeModal(); playModal(null, nm); };
   $("#d_bgg").onclick=()=>bggModal(g.id);
+  if($("#d_refresh")) $("#d_refresh").onclick=async()=>{
+    const btn=$("#d_refresh"); btn.disabled=true; btn.textContent="새로고침 중…";
+    try{ const det=await bggThings([g.bggId]);
+      if(det[0]){ applyBgg(g,det[0]); g.bggUpdated=new Date().toLocaleDateString("ko-KR"); await persist(); toast("BGG 정보 새로고침 완료"); renderStats(); gameDetail(g.id); }
+      else { toast("정보를 찾지 못했어요"); btn.disabled=false; btn.textContent="🔄 새로고침"; }
+    }catch(e){ toast("새로고침 실패 · 잠시 후 다시"); btn.disabled=false; btn.textContent="🔄 새로고침"; }
+  };
   $("#d_edit").onclick=()=>gameModal(g.id);
   $("#d_del").onclick=()=>{ const gid=g.id; closeModal(); delGame(gid); };
 }
@@ -1135,7 +1149,8 @@ function allPlayMonths(){
 function renderPlays(){
   const shareGrp = PLAYS_ONLY && SHARE_GROUP ? groupById(SHARE_GROUP) : null;
   const viewerMode = PLAYS_ONLY && viewerName;
-  let list=state.plays.slice().reverse();
+  // 날짜 내림차순(최신 날짜가 위). 같은 날짜면 최근에 입력한 것이 위(안정 정렬 + 사전 reverse)
+  let list=state.plays.slice().reverse().sort((a,b)=>dateKey(b.date).localeCompare(dateKey(a.date)));
   if(filter.pq){ list=list.filter(p=>(p.name||"").replace(/\s/g,"")===filter.pq.replace(/\s/g,"")); }
   if(shareGrp){ list=list.filter(p=>playInGroup(p,shareGrp)); }
   if(viewerMode && !shareGrp){ list=list.filter(p=>(p.reviews||[]).some(r=>revName(r)===viewerName)); }
@@ -1315,6 +1330,107 @@ function bggInfoModal(name){
       ${cover?`<div class="detail-cover"><img src="${esc(cover)}" alt=""></div>`:`<div class="detail-cover ph"><div class="cover-ph">🎲<span>표지 없음</span></div></div>`}
       <section class="dsec"><h4>게임 정보 (BGG)</h4>${rows}</section>
     </div>`);
+}
+// 게임 이름 클릭 시 BGG 정보만 보여주는 모달 (개인 구매정보 없음 → 공유 화면에서도 안전)
+// 미보유(목록에 없는) 게임도 BGG 캐시(state.bggCache)에서 찾거나, 주인이 직접 불러올 수 있음
+function bggInfoModal(name){
+  const g=findGameByPlayName(name);
+  const cache=(state.bggCache||{})[normName(name)];
+  const info = (g&&g.bggId)? g : ((cache&&cache.bggId)? cache : (g||null));
+  const hasBgg = !!(info&&info.bggId);
+  const cover=info?bigCover(info):"";
+  const rows=hasBgg?`
+    <div class="drow"><span>표지·연도</span><b>${info.bggYear?esc(info.bggYear):"-"}</b></div>
+    <div class="drow"><span>추천 인원</span><b>${esc(info.players||"-")}</b></div>
+    <div class="drow"><span>BEST 인원</span><b>${(info.best&&info.best.length)?esc(info.best.join(", "))+"인":"-"}</b></div>
+    <div class="drow"><span>플레이 시간</span><b>${esc(info.playtime||"-")}</b></div>
+    <div class="drow"><span>난이도</span><b>${info.weight!=null?Number(info.weight).toFixed(1)+" / 5":"-"}</b></div>
+    <div class="drow"><span>BGG 평균 평점</span><b>${info.bggRating!=null?Number(info.bggRating).toFixed(1)+" / 10":"-"}</b></div>
+    <div class="drow"><span>BGG 순위</span><b>${info.bggRank!=null?esc(info.bggRank.toLocaleString())+"위":"-"}</b></div>
+    <div class="drow"><span>작가</span><b>${esc(info.designers||"-")}</b></div>`
+    :`<div class="dempty">${SHARED_VIEW?"이 게임은 아직 BGG 정보가 없어요.":(g?"이 게임은 아직 BGG 정보가 없어요. 아래 ‘BGG에서 불러오기’로 채울 수 있어요.":"이 게임은 보유 목록에 없어요. 아래 ‘BGG에서 불러오기’로 정보를 불러올 수 있어요.")}</div>`;
+  const notShared=!SHARED_VIEW;
+  const canFetch = notShared && STORAGE_MODE==="firebase";
+  const foot = notShared ? `<div class="mfoot detail-foot">
+      ${hasBgg?`<button class="btn" id="bi_refresh">🔄 BGG 새로고침</button>`:""}
+      <button class="btn ${hasBgg?"":"save"}" id="bi_link">🔗 BGG에서 ${hasBgg?"다시 찾기":"불러오기"}</button>
+      <button class="btn cancel" data-close>닫기</button>
+    </div>` : "";
+  openModal(`
+    <div class="mhead"><h3>${esc((info&&info.name)||(g&&g.name)||name)}</h3><button class="x" data-close>×</button></div>
+    <div class="mbody detail">
+      ${cover?`<div class="detail-cover"><img src="${esc(cover)}" alt=""></div>`:`<div class="detail-cover ph"><div class="cover-ph">🎲<span>표지 없음</span></div></div>`}
+      <section class="dsec"><h4>게임 정보 (BGG)</h4>${rows}</section>
+      ${hasBgg&&info.bggUpdated?`<div class="hint" style="margin-top:6px">마지막 갱신: ${esc(info.bggUpdated)}</div>`:""}
+    </div>`+foot);
+  if($("#bi_refresh")) $("#bi_refresh").onclick=()=>bggRefreshForName(name);
+  if($("#bi_link")) $("#bi_link").onclick=()=>{
+    if(!canFetch){ alert("BGG 정보를 불러오려면 동기화(Firebase)가 켜져 있어야 해요. 상단 배지가 ‘동기화됨’인지 확인해 주세요."); return; }
+    bggLinkModal(name);
+  };
+}
+// 이미 연동된(보유게임 또는 캐시) 항목의 평점·순위를 같은 BGG id로 다시 불러와 갱신
+async function bggRefreshForName(name){
+  const g=findGameByPlayName(name);
+  const key=normName(name);
+  const target=(g&&g.bggId)? g : ((state.bggCache||{})[key]);
+  if(!target||!target.bggId){ toast("먼저 BGG에서 불러오세요"); return; }
+  const btn=$("#bi_refresh"); if(btn){ btn.disabled=true; btn.textContent="새로고침 중…"; }
+  try{
+    const det=await bggThings([target.bggId]);
+    if(det[0]){
+      Object.assign(target, bggToFields(det[0]));
+      target.bggUpdated=new Date().toLocaleDateString("ko-KR");
+      await persist(); toast("BGG 정보 새로고침 완료"); renderStats();
+      bggInfoModal(name);
+    } else { toast("BGG에서 정보를 찾지 못했어요"); if(btn){ btn.disabled=false; btn.textContent="🔄 BGG 새로고침"; } }
+  }catch(e){ toast("새로고침 실패 · 잠시 후 다시"); if(btn){ btn.disabled=false; btn.textContent="🔄 BGG 새로고침"; } }
+}
+// 미보유(또는 미연동) 게임을 BGG에서 검색해 연결 — 보유게임이면 그 게임에, 아니면 bggCache에 저장
+async function bggLinkModal(name){
+  const g=findGameByPlayName(name);
+  openModal(`
+    <div class="mhead"><h3>BGG에서 불러오기</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="bgg-note">‘${esc(name)}’ 와(과) 일치하는 BoardGameGeek 항목을 골라 주세요. 한글 이름은 잘 안 잡히니, 결과가 없으면 <b>영어 원제</b>로 검색해 보세요.${g?"":" (이 게임은 보유 목록에 없어 정보만 따로 저장됩니다.)"}</div>
+      <div class="field" style="display:flex;gap:8px;margin-bottom:12px">
+        <input id="bl_q" lang="ko" value="${esc((g&&g.name)||name)}" placeholder="예) Everdell" style="flex:1">
+        <button class="btn bgg" id="bl_go" style="white-space:nowrap">검색</button>
+      </div>
+      <div id="bl_results"><div class="statemsg">검색어를 입력하고 ‘검색’을 누르세요.</div></div>
+    </div>
+    <div class="mfoot"><button class="btn cancel" data-close>닫기</button></div>`);
+  const run=async()=>{
+    const q=$("#bl_q").value.trim(); if(!q) return;
+    $("#bl_results").innerHTML=`<div class="statemsg"><span class="spin"></span> BGG에서 검색 중…</div>`;
+    try{
+      const hits=await bggSearch(q);
+      if(!hits.length){ $("#bl_results").innerHTML=`<div class="statemsg">검색 결과가 없어요. 영어 원제로 다시 검색해 보세요.</div>`; return; }
+      const details=await bggThings(hits.map(h=>h.id));
+      const dmap={}; details.forEach(d=>dmap[d.id]=d);
+      $("#bl_results").innerHTML=hits.map(h=>{ const d=dmap[h.id]||{};
+        return `<button class="cand" data-pick="${h.id}">
+          <img loading="lazy" src="${esc(d.thumb||"")}" alt="">
+          <div class="ci"><div class="cn">${esc(d.name||h.name)}</div>
+          <div class="cm">${h.year?h.year+" · ":""}${d.weight?"난이도 "+d.weight.toFixed(1)+" · ":""}${d.rating!=null?"평점 "+d.rating.toFixed(1)+" · ":""}${d.rank!=null?d.rank.toLocaleString()+"위 · ":""}${esc(d.players||"")}${d.playtime?" · "+esc(d.playtime):""}</div></div>
+        </button>`; }).join("");
+      document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=async()=>{
+        const t=dmap[b.dataset.pick];
+        if(g){ applyBgg(g,t); g.bggUpdated=new Date().toLocaleDateString("ko-KR"); }
+        else {
+          state.bggCache=state.bggCache||{};
+          state.bggCache[normName(name)]=Object.assign({name:t.name||name, bggUpdated:new Date().toLocaleDateString("ko-KR")}, bggToFields(t));
+        }
+        await persist(); renderStats(); if(!SHARED_VIEW && activeTab==="collection") renderCollection();
+        toast("BGG 정보 연동 완료"); bggInfoModal(name);
+      });
+    }catch(e){
+      $("#bl_results").innerHTML=`<div class="statemsg">가져오기에 실패했어요. (${esc(e.message)})<br>동기화(Firebase)·Worker 설정을 확인하거나 잠시 후 다시 시도해 주세요.</div>`;
+    }
+  };
+  $("#bl_go").onclick=run;
+  $("#bl_q").onkeydown=e=>{ if(e.key==="Enter") run(); };
+  run();
 }
 function openLightbox(src){
   const o=$("#overlay"); o.innerHTML=`<div class="lightbox"><img src="${src}" alt=""></div>`; o.classList.add("on");
@@ -1716,7 +1832,7 @@ function renderTab(){
 }
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ activeTab=t.dataset.tab; renderTab(); });
 if(document.getElementById("recBtn")) document.getElementById("recBtn").onclick=recommendModal;
-if(document.getElementById("bulkBtn")) document.getElementById("bulkBtn").onclick=bulkBgg;
+if(document.getElementById("bulkBtn")) document.getElementById("bulkBtn").onclick=bulkBggChoose;
 
 /* ---------- 통계 ---------- */
 function barChart(rows, opt){
@@ -2006,13 +2122,13 @@ function parseThing(it){
     players
   };
 }
-function applyBgg(game, t){
-  game.bggId=t.id; game.thumb=t.thumb; game.image=t.image;
-  game.weight=t.weight; game.players=t.players; game.bggYear=t.year;
-  game.designers=t.designers; game.pmin=t.pmin; game.pmax=t.pmax;
-  game.best=t.best; game.playtime=t.playtime; game.ptmax=t.ptmax;
-  game.bggRating=t.rating; game.bggRank=t.rank;
-}
+// parseThing 결과 t를 저장용 BGG 필드 객체로 변환 (게임명은 덮어쓰지 않음)
+function bggToFields(t){ return {
+  bggId:t.id, thumb:t.thumb, image:t.image, weight:t.weight, players:t.players, bggYear:t.year,
+  designers:t.designers, pmin:t.pmin, pmax:t.pmax, best:t.best, playtime:t.playtime, ptmax:t.ptmax,
+  bggRating:t.rating, bggRank:t.rank }; }
+function applyBgg(game, t){ Object.assign(game, bggToFields(t)); }
+function normName(s){ return (s||"").replace(/\s/g,""); }
 
 async function bggModal(gid){
   const g=state.games.find(x=>x.id===gid);
@@ -2044,7 +2160,7 @@ async function bggModal(gid){
         </button>`;
       }).join("");
       document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=async()=>{
-        applyBgg(g, dmap[b.dataset.pick]); await persist(); closeModal(); renderStats(); renderCollection(); toast("BGG 정보 연동 완료");
+        applyBgg(g, dmap[b.dataset.pick]); g.bggUpdated=new Date().toLocaleDateString("ko-KR"); await persist(); closeModal(); renderStats(); renderCollection(); toast("BGG 정보 연동 완료");
       });
     }catch(e){
       $("#bgg_results").innerHTML=`<div class="statemsg">가져오기에 실패했어요. (${esc(e.message)})<br>공개 프록시가 막혔을 수 있어요. 안정적으로 쓰려면 Cloudflare Worker 프록시 주소를 코드의 <b>BGG_PROXY</b> 에 넣어 주세요. (함께 받은 bgg-proxy-worker.js 참고)</div>`;
@@ -2052,16 +2168,19 @@ async function bggModal(gid){
   };
   $("#bgg_go").onclick=run;
   $("#bgg_q").onkeydown=e=>{ if(e.key==="Enter") run(); };
-  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","best","playtime","ptmax","bggYear","bggRating","bggRank"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderTab(); };
+  if($("#bgg_unlink")) $("#bgg_unlink").onclick=async()=>{ ["bggId","thumb","image","weight","players","designers","pmin","pmax","best","playtime","ptmax","bggYear","bggRating","bggRank","bggUpdated"].forEach(k=>delete g[k]); await persist(); closeModal(); renderStats(); renderTab(); };
   run();
 }
 
 let BULK_RUNNING=false;
-async function bulkBgg(){
-  const targets=state.games.filter(g=>g.owned && !g.bggId);
-  if(!targets.length){ alert("연동할 게임이 없어요. (보유 게임은 모두 연동되었거나 없음)"); return; }
-  if(!confirm(`보유 게임 중 미연동 ${targets.length}개를 자동 연동합니다.\n한글 이름은 매칭이 안 될 수 있고, BGG 속도 제한 때문에 시간이 걸려요. 진행할까요?`)) return;
-  // 진행 표시줄은 화면 재렌더에 영향받지 않도록 body에 고정 오버레이로 띄운다
+async function bulkBgg(mode){
+  mode = mode||"link";
+  const targets = mode==="refresh"
+    ? state.games.filter(g=>g.bggId)                 // 이미 연동된 게임 → 평점·순위 갱신
+    : state.games.filter(g=>g.owned && !g.bggId);    // 미연동 보유 게임 → 새로 연동
+  if(!targets.length){ alert(mode==="refresh"?"새로고침할 연동 게임이 없어요.":"연동할 게임이 없어요. (보유 게임은 모두 연동되었거나 없음)"); return; }
+  const verb = mode==="refresh"?"평점·순위 새로고침":"자동 연동";
+  if(!confirm(`${mode==="refresh"?"이미 연동된":"보유 게임 중 미연동"} ${targets.length}개를 ${verb}합니다.\n${mode==="refresh"?"":"한글 이름은 매칭이 안 될 수 있고, "}BGG 속도 제한 때문에 시간이 걸려요. 진행할까요?`)) return;
   BULK_RUNNING=true;
   const bar=document.createElement("div"); bar.className="bggbar-fixed";
   bar.innerHTML=`<span id="bgg_stat"></span><div class="progress"><i id="bgg_pi"></i></div><button class="fchip" id="bgg_stop">중단</button>`;
@@ -2070,15 +2189,21 @@ async function bulkBgg(){
   const setStat=h=>{ const el=bar.querySelector("#bgg_stat"); if(el) el.innerHTML=h; };
   const setPi=w=>{ const el=bar.querySelector("#bgg_pi"); if(el) el.style.width=w+"%"; };
   let done=0, ok=0, fail=0, failNames=[];
+  const today=new Date().toLocaleDateString("ko-KR");
   for(const g of targets){
     if(stop) break;
     setStat(`<span class="spin"></span> ${esc(g.name)} (${done+1}/${targets.length})`);
     try{
-      const hits=await bggSearch(g.name);
-      if(hits.length){
-        const det=await bggThings([hits[0].id]);
-        if(det[0]){ applyBgg(g, det[0]); ok++; } else { fail++; failNames.push(g.name); }
-      } else { fail++; failNames.push(g.name); }
+      if(mode==="refresh"){
+        const det=await bggThings([g.bggId]);
+        if(det[0]){ applyBgg(g, det[0]); g.bggUpdated=today; ok++; } else { fail++; failNames.push(g.name); }
+      } else {
+        const hits=await bggSearch(g.name);
+        if(hits.length){
+          const det=await bggThings([hits[0].id]);
+          if(det[0]){ applyBgg(g, det[0]); g.bggUpdated=today; ok++; } else { fail++; failNames.push(g.name); }
+        } else { fail++; failNames.push(g.name); }
+      }
     }catch(e){
       fail++; failNames.push(g.name);
       if(done===0){ setStat("연결 실패 — Worker/토큰 설정을 확인하거나 잠시 후 다시 시도하세요."); await sleep(1800); break; }
@@ -2088,16 +2213,30 @@ async function bulkBgg(){
     await sleep(1300); // BGG 속도 제한 준수 (한 건씩 천천히)
   }
   BULK_RUNNING=false;
-  await persist(true);      // 저장은 마지막에 한 번만 (중간 재렌더로 진행이 끊기지 않도록)
+  await persist(true);
   bar.remove();
   renderStats(); renderTab();
-  const extra = failNames.length? `\n실패: ${failNames.slice(0,8).join(", ")}${failNames.length>8?" 외 "+(failNames.length-8)+"개":""}\n(한글 이름은 영어 원제로 바꿔 개별 연동해 보세요)` : "";
-  alert(`완료 · 연동 ${ok}개 / 실패 ${fail}개${extra}`);
+  const extra = failNames.length? `\n실패: ${failNames.slice(0,8).join(", ")}${failNames.length>8?" 외 "+(failNames.length-8)+"개":""}${mode==="refresh"?"":"\n(한글 이름은 영어 원제로 바꿔 개별 연동해 보세요)"}` : "";
+  alert(`완료 · ${mode==="refresh"?"갱신":"연동"} ${ok}개 / 실패 ${fail}개${extra}`);
+}
+// 일괄 버튼 클릭 시: 미연동 연동 / 연동된 것 새로고침 중 선택
+function bulkBggChoose(){
+  const unlinked=state.games.filter(g=>g.owned && !g.bggId).length;
+  const linked=state.games.filter(g=>g.bggId).length;
+  openModal(`
+    <div class="mhead"><h3>BGG 일괄 작업</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="hint" style="margin-bottom:12px">BGG의 평점·순위는 계속 바뀝니다. 최신값으로 맞추려면 ‘새로고침’을 쓰세요.</div>
+      <button class="btn save" id="bulk_link" style="width:100%;margin-bottom:8px">미연동 ${unlinked}개 새로 연동</button>
+      <button class="btn" id="bulk_refresh" style="width:100%">연동된 ${linked}개 평점·순위 새로고침</button>
+    </div>`);
+  $("#bulk_link").onclick=()=>{ closeModal(); bulkBgg("link"); };
+  $("#bulk_refresh").onclick=()=>{ closeModal(); bulkBgg("refresh"); };
 }
 
 
 $("#exportBtn").onclick=()=>{
-  const blob=new Blob([JSON.stringify({games:state.games,plays:state.plays,nicks:state.nicks,groups:state.groups||[]},null,2)],{type:"application/json"});
+  const blob=new Blob([JSON.stringify({games:state.games,plays:state.plays,nicks:state.nicks,groups:state.groups||[],bggCache:state.bggCache||{}},null,2)],{type:"application/json"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="boardgame_backup.json"; a.click();
 };
 $("#importBtn").onclick=()=>$("#fileInput").click();
@@ -2105,7 +2244,7 @@ $("#fileInput").onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=async()=>{ try{ const d=JSON.parse(r.result);
-      if(d.games) state.games=d.games; if(d.plays) state.plays=d.plays; if(d.nicks) state.nicks=d.nicks; if(d.groups) state.groups=d.groups;
+      if(d.games) state.games=d.games; if(d.plays) state.plays=d.plays; if(d.nicks) state.nicks=d.nicks; if(d.groups) state.groups=d.groups; if(d.bggCache) state.bggCache=d.bggCache;
       migrateDates(); await persist(); renderStats(); renderTab(); toast("불러오기 완료");
     }catch(err){ alert("파일을 읽을 수 없습니다. 백업 JSON 파일인지 확인해 주세요."); } };
   r.readAsText(f);
