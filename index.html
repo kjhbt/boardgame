@@ -82,11 +82,10 @@ button{font-family:inherit;cursor:pointer}
 .actbtn.bulk:hover{filter:brightness(1.05)}
 body.plays-only .tabacts{display:none}
 .drow.tags{align-items:flex-start}
-.drow.tags>span{padding-top:5px}
+.drow.tags>span{padding-top:5px;white-space:nowrap;flex-shrink:0}
 .tagchips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
 .tagchip{font-size:12px;background:var(--paper);border:1.5px solid var(--line);color:var(--ink);
-  border-radius:999px;padding:4px 10px;cursor:pointer;transition:.12s}
-.tagchip:hover{border-color:var(--felt);background:#fff}
+  border-radius:999px;padding:4px 10px}
 .coopbox{background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;margin-top:4px}
 .coop-toggle{display:flex;align-items:center;gap:8px;font-family:"Jua";font-size:14px;color:var(--ink);cursor:pointer}
 .coop-toggle input{width:18px;height:18px;accent-color:var(--felt)}
@@ -491,8 +490,9 @@ body.rate-mode .hero{padding-bottom:20px}
   .tabs{gap:6px}
   .tab{flex:1;text-align:center;padding:9px 4px;font-size:14px}
   .tabacts{gap:8px}
-  .tabacts .actbtn{flex:1;text-align:center;font-size:13px;padding:10px 6px}
+  .tabacts .actbtn,.tabacts .add{flex:1;text-align:center;font-size:13px;padding:10px 6px}
   .controls .play-acts{flex:1 1 100%;margin-left:0;gap:6px}
+  .controls>.actbtn{flex:1 1 100%;text-align:center}
   .controls .coll-acts{display:contents}
   .play-acts .actbtn{font-size:12px;padding:9px 4px;line-height:1.15;min-width:0}
 
@@ -567,6 +567,7 @@ body.rate-mode .hero{padding-bottom:20px}
       <button class="tab" data-tab="stats" aria-selected="false">통계</button>
     </div>
     <div class="tabacts">
+      <button class="add" id="addGame">＋ 게임 추가</button>
       <button class="actbtn rec" id="recBtn">🎲 랜덤 추천</button>
       <button class="actbtn bulk" id="bulkBtn">BGG 일괄 연동</button>
     </div>
@@ -1007,12 +1008,12 @@ function renderCollection(){
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="searchInput" lang="ko" placeholder="게임 이름으로 검색" value="${esc(filter.q)}">
       </div>
-      <div class="chips">
-        <button class="fchip" data-status="all" aria-pressed="${filter.status==="all"}">전체</button>
-        <button class="fchip" data-status="owned" aria-pressed="${filter.status==="owned"}">보유중</button>
-        <button class="fchip" data-status="funding" aria-pressed="${filter.status==="funding"}">펀딩중</button>
-        ${shareMode?"":`<button class="fchip" data-status="gone" aria-pressed="${filter.status==="gone"}">방출</button>`}
-      </div>
+      <select id="statusSel" title="상태">
+        <option value="all" ${filter.status==="all"?"selected":""}>상태 전체</option>
+        <option value="owned" ${filter.status==="owned"?"selected":""}>보유중</option>
+        <option value="funding" ${filter.status==="funding"?"selected":""}>펀딩중</option>
+        ${shareMode?"":`<option value="gone" ${filter.status==="gone"?"selected":""}>방출</option>`}
+      </select>
       <select id="sortSel" title="정렬">
         ${shareMode?`<option value="name" ${filter.sort==="name"?"selected":""}>이름순</option>`:`
         <option value="recent" ${filter.sort==="recent"?"selected":""}>최신 구매순</option>
@@ -1040,16 +1041,7 @@ function renderCollection(){
         <option value="4" ${filter.best==="4"?"selected":""}>BEST 4인</option>
         <option value="5" ${filter.best==="5"?"selected":""}>BEST 5인+</option>
       </select>
-      ${(()=>{ const cats=new Set(),mechs=new Set();
-        state.games.forEach(g=>{ if(COLL_ONLY&&gstatus(g)==="gone")return; (g.categories||[]).forEach(c=>cats.add(c)); (g.mechanics||[]).forEach(m=>mechs.add(m)); });
-        if(!cats.size && !mechs.size) return "";
-        const opt=(k,v)=>`<option value="${k}::${esc(v)}" ${filter.tag===k+"::"+v?"selected":""}>${esc(v)}</option>`;
-        return `<select id="tagSel" title="테마·메커니즘">
-          <option value="all" ${(!filter.tag||filter.tag==="all")?"selected":""}>테마·메커니즘 전체</option>
-          ${cats.size?`<optgroup label="🏷️ 테마">${[...cats].sort((a,b)=>a.localeCompare(b)).map(v=>opt("c",v)).join("")}</optgroup>`:""}
-          ${mechs.size?`<optgroup label="⚙️ 메커니즘">${[...mechs].sort((a,b)=>a.localeCompare(b)).map(v=>opt("m",v)).join("")}</optgroup>`:""}
-        </select>`; })()}
-      ${shareMode?"":`<div class="coll-acts"><button class="actbtn" id="shareColl">🔗 목록 공유</button><button class="add" id="addGame">＋ 게임 추가</button></div>`}
+      ${shareMode?"":`<button class="actbtn" id="shareColl">🔗 목록 공유</button>`}
     </div>
     <div class="grid2" id="grid"></div>`;
 
@@ -1061,13 +1053,7 @@ function renderCollection(){
   $("#sortSel").onchange=e=>{ filter.sort=e.target.value; renderGrid(); };
   $("#playSel").onchange=e=>{ filter.players=e.target.value; renderGrid(); };
   $("#bestSel").onchange=e=>{ filter.best=e.target.value; renderGrid(); };
-  if($("#tagSel")) $("#tagSel").onchange=e=>{ filter.tag=e.target.value; renderGrid(); };
-  document.querySelectorAll(".fchip").forEach(c=>c.onclick=()=>{
-    filter.status=c.dataset.status;
-    document.querySelectorAll(".fchip").forEach(x=>x.setAttribute("aria-pressed", x.dataset.status===filter.status));
-    renderGrid();
-  });
-  if($("#addGame")) $("#addGame").onclick=()=>gameModal();
+  if($("#statusSel")) $("#statusSel").onchange=e=>{ filter.status=e.target.value; renderGrid(); };
   if($("#shareColl")) $("#shareColl").onclick=copyCollectionLink;
   renderGrid();
 }
@@ -1092,8 +1078,8 @@ function gameDetail(id){
     <div class="drow"><span>BGG 평균 평점</span><b>${g.bggRating!=null?Number(g.bggRating).toFixed(1)+" / 10":"-"}</b></div>
     <div class="drow"><span>BGG 순위</span><b>${g.bggRank!=null?esc(g.bggRank.toLocaleString())+"위":"-"}</b></div>
     <div class="drow"><span>작가</span><b>${esc(g.designers||"-")}</b></div>
-    ${(g.categories&&g.categories.length)?`<div class="drow tags"><span>테마</span><div class="tagchips">${g.categories.map(c=>`<button class="tagchip" data-tagpick="c::${esc(c)}">${esc(c)}</button>`).join("")}</div></div>`:""}
-    ${(g.mechanics&&g.mechanics.length)?`<div class="drow tags"><span>메커니즘</span><div class="tagchips">${g.mechanics.map(m=>`<button class="tagchip" data-tagpick="m::${esc(m)}">${esc(m)}</button>`).join("")}</div></div>`:""}`
+    ${(g.categories&&g.categories.length)?`<div class="drow tags"><span>테마</span><div class="tagchips">${g.categories.map(c=>`<span class="tagchip">${esc(c)}</span>`).join("")}</div></div>`:""}
+    ${(g.mechanics&&g.mechanics.length)?`<div class="drow tags"><span>메커니즘</span><div class="tagchips">${g.mechanics.map(m=>`<span class="tagchip">${esc(m)}</span>`).join("")}</div></div>`:""}`
     : `<div class="dempty">아직 BGG 정보가 없어요. 아래 ‘BGG 정보 가져오기’를 눌러 불러오세요.</div>`;
   const stTxt = gstatus(g)==="owned"?"보유중" : gstatus(g)==="funding"?"펀딩중 (아직 도착 안 함)" : "방출"+(g.disposal?" · "+esc(g.disposal):"");
   const perPlay = (g.price&&pc>0)? "₩"+Math.round(g.price/pc).toLocaleString()+" / 회" : (pc===0?"아직 플레이 없음":"-");
@@ -1139,7 +1125,6 @@ function gameDetail(id){
   $("#d_sleeve_save").onclick=async()=>{ g.sleeve=$("#d_sleeve").value; await persist(); toast("슬리브 저장됨"); };
   $("#d_memo_save").onclick=async()=>{ g.memo=$("#d_memo").value; await persist(); toast("메모 저장됨"); };
   $("#d_play").onclick=()=>{ const nm=g.name; closeModal(); playModal(null, nm); };
-  document.querySelectorAll("[data-tagpick]").forEach(b=>b.onclick=()=>{ filter.tag=b.dataset.tagpick; filter.status="all"; closeModal(); activeTab="collection"; renderTab(); });
   $("#d_bgg").onclick=()=>bggModal(g.id);
   if($("#d_refresh")) $("#d_refresh").onclick=async()=>{
     const btn=$("#d_refresh"); btn.disabled=true; btn.textContent="새로고침 중…";
@@ -1934,6 +1919,8 @@ function renderTab(){
   if(PLAYS_ONLY){ activeTab="plays"; renderPlays(); return; }
   if(COLL_ONLY){ activeTab="collection"; filter.pq=null; renderCollection(); return; }
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.tab===activeTab));
+  const ta=document.querySelector(".tabbar .tabacts");
+  if(ta) ta.style.display = (activeTab==="collection") ? "" : "none";
   if(activeTab==="collection"){ filter.pq=null; renderCollection(); }
   else if(activeTab==="stats"){ renderStatsTab(); }
   else renderPlays();
@@ -1941,6 +1928,7 @@ function renderTab(){
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ activeTab=t.dataset.tab; renderTab(); });
 if(document.getElementById("recBtn")) document.getElementById("recBtn").onclick=recommendModal;
 if(document.getElementById("bulkBtn")) document.getElementById("bulkBtn").onclick=bulkBggChoose;
+if(document.getElementById("addGame")) document.getElementById("addGame").onclick=()=>gameModal();
 
 /* ---------- 통계 ---------- */
 function barChart(rows, opt){
