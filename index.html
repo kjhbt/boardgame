@@ -82,6 +82,10 @@ button{font-family:inherit;cursor:pointer}
 .actbtn.bulk:hover{filter:brightness(1.05)}
 body.plays-only .tabacts{display:none}
 .drow.tags{align-items:flex-start}
+.dsec-row{display:flex;gap:8px;align-items:flex-end}
+.dsec-row textarea{flex:1;min-width:0;margin:0}
+.dsec-row .btn{flex:0 0 auto;white-space:nowrap;align-self:flex-end}
+@media(max-width:480px){ .dsec-row .btn{padding-left:12px;padding-right:12px} }
 .drow.tags>span{padding-top:5px;white-space:nowrap;flex-shrink:0}
 .tagchips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
 .tagchip{font-size:12px;background:var(--paper);border:1.5px solid var(--line);color:var(--ink);
@@ -1071,7 +1075,7 @@ function gameDetail(id){
   const pc=playCountFor(g.name);
   const bggRows = g.bggId ? `
     <div class="drow"><span>표지·연도</span><b>${g.bggYear?esc(g.bggYear):"-"}</b></div>
-    <div class="drow"><span>추천 인원</span><b>${esc(g.players||"-")}</b></div>
+    <div class="drow"><span>가능 인원</span><b>${esc(playableStr(g))}</b></div>
     <div class="drow"><span>BEST 인원</span><b>${(g.best&&g.best.length)?esc(g.best.join(", "))+"인":"-"}</b></div>
     <div class="drow"><span>플레이 시간</span><b>${esc(g.playtime||"-")}</b></div>
     <div class="drow"><span>난이도</span><b>${g.weight!=null?Number(g.weight).toFixed(1)+" / 5":"-"}</b></div>
@@ -1107,12 +1111,16 @@ function gameDetail(id){
         <div class="drow"><span>플레이 수 · 1회당 비용</span><b>${pc}회 · ${perPlay}</b></div>
       </section>
       <section class="dsec"><h4>슬리브</h4>
-        <textarea id="d_sleeve" lang="ko" class="sleeve-in" placeholder="슬리브 사이즈·수량을 적어두세요 (예: 56×87 100매, 65×90 50매)">${esc(g.sleeve||"")}</textarea>
-        <button class="btn save" id="d_sleeve_save" style="margin-top:8px">슬리브 저장</button>
+        <div class="dsec-row">
+          <textarea id="d_sleeve" lang="ko" class="sleeve-in" placeholder="슬리브 사이즈·수량을 적어두세요 (예: 56×87 100매, 65×90 50매)">${esc(g.sleeve||"")}</textarea>
+          <button class="btn save" id="d_sleeve_save">슬리브 저장</button>
+        </div>
       </section>
       <section class="dsec"><h4>메모</h4>
-        <textarea id="d_memo" lang="ko" class="sleeve-in" placeholder="유의점·하우스룰·구성품 메모 등을 적어두세요">${esc(g.memo||"")}</textarea>
-        <button class="btn save" id="d_memo_save" style="margin-top:8px">메모 저장</button>
+        <div class="dsec-row">
+          <textarea id="d_memo" lang="ko" class="sleeve-in" placeholder="유의점·하우스룰·구성품 메모 등을 적어두세요">${esc(g.memo||"")}</textarea>
+          <button class="btn save" id="d_memo_save">메모 저장</button>
+        </div>
       </section>
     </div>
     <div class="mfoot detail-foot">
@@ -1395,7 +1403,7 @@ function bggInfoModal(name){
   const cover=g?bigCover(g):"";
   const rows=(g&&g.bggId)?`
     <div class="drow"><span>표지·연도</span><b>${g.bggYear?esc(g.bggYear):"-"}</b></div>
-    <div class="drow"><span>추천 인원</span><b>${esc(g.players||"-")}</b></div>
+    <div class="drow"><span>가능 인원</span><b>${esc(playableStr(g))}</b></div>
     <div class="drow"><span>BEST 인원</span><b>${(g.best&&g.best.length)?esc(g.best.join(", "))+"인":"-"}</b></div>
     <div class="drow"><span>플레이 시간</span><b>${esc(g.playtime||"-")}</b></div>
     <div class="drow"><span>난이도</span><b>${g.weight!=null?Number(g.weight).toFixed(1)+" / 5":"-"}</b></div>
@@ -1420,7 +1428,7 @@ function bggInfoModal(name){
   const cover=info?bigCover(info):"";
   const rows=hasBgg?`
     <div class="drow"><span>표지·연도</span><b>${info.bggYear?esc(info.bggYear):"-"}</b></div>
-    <div class="drow"><span>추천 인원</span><b>${esc(info.players||"-")}</b></div>
+    <div class="drow"><span>가능 인원</span><b>${esc(playableStr(info))}</b></div>
     <div class="drow"><span>BEST 인원</span><b>${(info.best&&info.best.length)?esc(info.best.join(", "))+"인":"-"}</b></div>
     <div class="drow"><span>플레이 시간</span><b>${esc(info.playtime||"-")}</b></div>
     <div class="drow"><span>난이도</span><b>${info.weight!=null?Number(info.weight).toFixed(1)+" / 5":"-"}</b></div>
@@ -2231,6 +2239,14 @@ function bggToFields(t){ return {
   bggRating:t.rating, bggRank:t.rank, categories:t.categories||[], mechanics:t.mechanics||[] }; }
 function applyBgg(game, t){ Object.assign(game, bggToFields(t)); }
 function normName(s){ return (s||"").replace(/\s/g,""); }
+// BGG 최소/최대 인원 → "가능 인원" 표시 (예: 2~5인 / 2인 / 2인 이상)
+function playableStr(g){
+  const a=g&&g.pmin, b=g&&g.pmax;
+  if(a&&b) return a===b ? a+"인" : a+"~"+b+"인";
+  if(a) return a+"인 이상";
+  if(b) return b+"인 이하";
+  return "-";
+}
 
 async function bggModal(gid){
   const g=state.games.find(x=>x.id===gid);
