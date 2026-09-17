@@ -1236,8 +1236,7 @@ function gameDetail(id){
       <label class="coop-toggle" style="margin-bottom:2px"><input type="checkbox" id="mc_done" ${_mcRec?"checked":""}> ✔ 플레이 완료</label>
       <div id="mc_body" style="${_mcRec?"":"display:none"};margin-top:10px">
         <div class="field"><label>플레이 날짜</label><input id="mc_date" value="${esc(_mcRec?_mcRec.date:_today)}" placeholder="2026.06.28"></div>
-        <label style="font-size:13px;color:var(--muted);display:block;margin-bottom:6px">함께한 사람</label>
-        <div class="grp-members" id="mc_people">${state.nicks.map(n=>`<label><input type="checkbox" class="mc-p" value="${esc(n.name)}" ${_mcNames.includes(n.name)?"checked":""}><span class="dot" style="background:${n.color};width:9px;height:9px;border-radius:50%;display:inline-block"></span>${esc(n.name)}</label>`).join("")||`<span class="hint">먼저 플레이 기록에서 참가자를 등록해 주세요.</span>`}</div>
+        <div class="field"><label>함께한 사람 <small style="color:var(--muted)">(쉼표로 구분)</small></label><input id="mc_people" lang="ko" value="${esc(_mcNames.join(", "))}" placeholder="예) 김장훈, 김나영, 민수"></div>
       </div>
       <button class="btn save" id="mc_save" style="width:100%;margin-top:10px">플레이 체크 저장</button>
       <div class="hint" style="margin-top:6px">점수·한줄평까지 남기려면 아래 ‘＋ 플레이 기록’을 쓰세요.</div>
@@ -1305,8 +1304,12 @@ function gameDetail(id){
       await persist(); toast("플레이 안 함으로 표시"); renderStats(); gameDetail(g.id); return;
     }
     const date=normDate($("#mc_date").value.trim());
-    const names=[...document.querySelectorAll(".mc-p:checked")].map(c=>c.value);
-    const reviews=names.map(nm=>{ const nk=state.nicks.find(n=>n.name===nm)||{}; return {name:nm, code:nk.code||nm.slice(0,2).toUpperCase(), color:nk.color||"#3A6EA5", score:null, text:"", winner:false}; });
+    const names=($("#mc_people").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    const reviews=names.map(nm=>{
+      let nk=state.nicks.find(n=>n.name===nm);
+      if(!nk){ nk={code:nm.slice(0,2).toUpperCase(), name:nm, color:NICK_PALETTE[state.nicks.length%NICK_PALETTE.length]}; state.nicks.push(nk); }
+      return {name:nm, code:nk.code, color:nk.color, score:null, text:"", winner:false};
+    });
     if(rec){ rec.date=date; rec.players=String(names.length||2); rec.reviews=reviews; }
     else { state.plays.push({id:"mc"+Date.now().toString(36), name:g.name, date, players:String(names.length||2), winner:"", count:"머더/추리", reviews, murderCheck:true}); }
     await persist(); toast("플레이 체크 저장됨"); renderStats(); gameDetail(g.id);
