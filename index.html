@@ -121,7 +121,30 @@ body.plays-only .tabacts{display:none}
 .murder-sum b{color:var(--ink)}
 .murder-check{display:flex;align-items:center;gap:8px;font-family:"Jua";font-size:14px;color:var(--ink);
   background:var(--paper);border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:12px;cursor:pointer}
-.murder-check input{width:18px;height:18px;accent-color:var(--felt)}.coop-toggle{display:flex;align-items:center;gap:8px;font-family:"Jua";font-size:14px;color:var(--ink);cursor:pointer}
+.murder-check input{width:18px;height:18px;accent-color:var(--felt)}
+/* 머더 경험자 미니 배지 */
+.mexp-mini{font-size:11px;color:var(--muted);padding:0 10px 8px}
+/* 머더 표 보기 */
+.mtable{display:flex;flex-direction:column;gap:6px}
+.mtrow{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
+  border-radius:11px;padding:10px 12px;box-shadow:var(--shadow)}
+.mtrow.gone{opacity:.62}
+.mtrow.mthead{background:transparent;border:0;box-shadow:none;padding:2px 12px;color:var(--muted);font-size:12px}
+.mtc-name{flex:0 0 34%;min-width:0}
+.mtc-exp{flex:1;min-width:0}
+.mtname{font-family:"Jua";font-size:14.5px;color:var(--ink);background:none;border:0;padding:0;text-align:left;cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;border-bottom:2px dotted transparent}
+.mtname:hover{border-bottom-color:var(--felt)}
+.mexp-in{width:100%;font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
+  border:1.5px solid var(--line);border-radius:9px;padding:8px 10px;outline:none}
+.mexp-in:focus{border-color:var(--felt);background:#fff}
+@media(max-width:600px){ .mtc-name{flex:0 0 40%} .mtrow{flex-wrap:wrap} }
+/* 추천 결과 */
+.rec-item{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:var(--paper);
+  border:1.5px solid var(--line);border-radius:11px;padding:10px 13px;margin-bottom:7px;cursor:pointer}
+.rec-item:hover{border-color:var(--felt);background:#fff}
+.ri-name{font-family:"Jua";font-size:15px;color:var(--ink)}
+.ri-meta{font-size:12px;color:var(--muted)}.coop-toggle{display:flex;align-items:center;gap:8px;font-family:"Jua";font-size:14px;color:var(--ink);cursor:pointer}
 .coop-toggle input{width:18px;height:18px;accent-color:var(--felt)}
 .coop-sub{font-family:"Gowun Dodum";font-size:12px;color:var(--muted);font-weight:400}
 .coop-result{display:flex;gap:8px;margin-top:10px}
@@ -1063,25 +1086,29 @@ function gridRenderer(){ return collView==="list"? gameRow : gameCard; }
 /* ---------- 머더/추리 탭 ---------- */
 let murderQ="";
 let murderFilter={status:"all",players:"all"};
+let murderView = (()=>{ try{ return localStorage.getItem("bg_murderview")||"grid"; }catch(e){ return "grid"; } })();
+function setMurderView(v){ murderView=v; try{ localStorage.setItem("bg_murderview",v); }catch(e){} }
+function expOf(g){ return Array.isArray(g.experienced)?g.experienced:[]; }
 function murderCard(g){
-  const cover=cardCover(g), played=playCountFor(g.name)>0, st=gstatus(g);
+  const cover=cardCover(g), played=playCountFor(g.name)>0, st=gstatus(g), exp=expOf(g);
   const flag = st==="funding"?'<span class="fund-flag">펀딩중</span>' : st==="gone"?'<span class="gone-flag">방출</span>' : "";
   return `<button class="gcard2 ${st}" data-detail="${g.id}" title="${esc(g.name)}">
     <div class="cover">${cover?`<img loading="lazy" decoding="async" src="${esc(cover)}" alt="">`:`<div class="cover-ph">🕵️<span>표지 없음</span></div>`}
-      <span class="${played?"play-flag done":"play-flag"}">${played?"✔ 플레이함":"미플"}</span></div>
+      <span class="${played?"play-flag done":"play-flag"}">${played?"✔ 플레이함":"노플"}</span></div>
     ${flag}
     <div class="gname2">${esc(g.name)}</div>
+    <div class="mexp-mini">${exp.length?("해본 사람 "+exp.length+"명"):"경험자 없음"}</div>
   </button>`;
 }
 function murderRow(g){
-  const played=playCountFor(g.name)>0, st=gstatus(g);
+  const played=playCountFor(g.name)>0, st=gstatus(g), exp=expOf(g);
   const sflag = st==="funding"?'<span class="rowbadge fund">펀딩</span>' : st==="gone"?'<span class="rowbadge gone">방출</span>' : "";
   return `<button class="grow ${st}" data-detail="${g.id}">
-    <span class="grow-name">${esc(g.name)}<span class="rowbadge ${played?"done":"todo"}">${played?"✔ 플레이함":"미플"}</span>${sflag}</span>
+    <span class="grow-name">${esc(g.name)}<span class="rowbadge ${played?"done":"todo"}">${played?"✔ 플레이함":"노플"}</span>${sflag}</span>
     <span class="grow-stats">
       <span class="gs" title="가능 인원">👥 ${esc(playableStr(g))}</span>
       <span class="gs" title="난이도">🎯 ${g.weight!=null?Number(g.weight).toFixed(1):"-"}</span>
-      <span class="gs" title="플레이 시간">⏱ ${esc(g.playtime||"-")}</span>
+      <span class="gs" title="해본 사람">🧑 ${exp.length?esc(exp.join(", ")):"없음"}</span>
     </span>
   </button>`;
 }
@@ -1093,13 +1120,27 @@ function murderList(){
   list.sort((a,b)=>{ const pa=playCountFor(a.name)>0?1:0, pb=playCountFor(b.name)>0?1:0; if(pa!==pb) return pa-pb; return a.name.localeCompare(b.name,"ko"); });
   return list;
 }
+function murderTableHtml(list){
+  if(!list.length) return `<div class="empty"><div class="big">머더/추리 게임이 없어요</div></div>`;
+  return `<div class="mtable">
+    <div class="mtrow mthead"><span class="mtc-name">게임</span><span class="mtc-exp">플레이해본 사람 (쉼표로 편집)</span></div>
+    ${list.map(g=>`<div class="mtrow ${gstatus(g)}">
+      <span class="mtc-name"><button class="mtname" data-detail="${g.id}" title="상세 보기">${esc(g.name)}</button></span>
+      <span class="mtc-exp"><input class="mexp-in" lang="ko" data-exp="${g.id}" value="${esc(expOf(g).join(", "))}" placeholder="예) 김장훈, 민수, 영희"></span>
+    </div>`).join("")}
+  </div>`;
+}
 function renderMurder(){
   const list=murderList();
   const all=state.games.filter(g=>g.murder);
-  const total=all.length;
-  const done=all.filter(g=>playCountFor(g.name)>0).length;
-  const render = collView==="list"? murderRow : murderCard;
+  const total=all.length, done=all.filter(g=>playCountFor(g.name)>0).length;
   const filtered=(murderFilter.status!=="all"||murderFilter.players!=="all");
+  const viewLabel = murderView==="grid"?"☰ 리스트" : murderView==="list"?"▦ 표" : "🔲 카드";
+  const body = murderView==="table"
+    ? murderTableHtml(list)
+    : `<div class="grid2 ${murderView==="list"?"as-list":""}" id="grid">${
+        list.length? list.map(murderView==="list"?murderRow:murderCard).join("") : `<div class="empty"><div class="big">${filtered?"조건에 맞는 게임이 없어요":"머더/추리 게임이 없어요"}</div><div>${filtered?"필터를 바꿔 보세요.":"‘＋ 머더/추리 추가’로 등록하거나, 기존 게임 수정에서 ‘머더/추리’로 체크하세요."}</div></div>`
+      }</div>`;
   $("#view").innerHTML=`
     <div class="controls">
       <div class="search">
@@ -1116,33 +1157,82 @@ function renderMurder(){
         <option value="all" ${murderFilter.players==="all"?"selected":""}>인원 전체</option>
         ${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${murderFilter.players==String(n)?"selected":""}>${n}인 가능</option>`).join("")}
       </select>
-      <button class="viewtoggle" id="mViewToggle" title="보기 전환">${collView==="list"?"🔲 카드":"☰ 리스트"}</button>
+      <button class="viewtoggle" id="mViewToggle" title="보기 전환 (카드/리스트/표)">${viewLabel}</button>
+      <button class="actbtn" id="mRecBtn">🎲 추천</button>
       <button class="add" id="addMurder">＋ 머더/추리 추가</button>
     </div>
-    <div class="murder-sum">전체 <b>${total}</b> · 플레이함 <b>${done}</b> · 미플 <b>${total-done}</b>${filtered?` · <span style="color:var(--muted)">필터 적용 중</span>`:""}</div>
-    <div class="grid2 ${collView==="list"?"as-list":""}" id="grid">${
-      list.length? list.map(render).join("") : `<div class="empty"><div class="big">${filtered?"조건에 맞는 게임이 없어요":"머더/추리 게임이 없어요"}</div><div>${filtered?"필터를 바꿔 보세요.":"‘＋ 머더/추리 추가’로 등록하거나, 기존 게임 수정에서 ‘머더/추리’로 체크하세요."}</div></div>`
-    }</div>`;
-  $("#grid").querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>gameDetail(b.dataset.detail));
+    <div class="murder-sum">전체 <b>${total}</b> · 플레이함 <b>${done}</b> · 노플 <b>${total-done}</b>${filtered?` · <span style="color:var(--muted)">필터 적용 중</span>`:""}${murderView==="table"?` · <span style="color:var(--muted)">표에서 이름을 편집하면 자동 저장돼요</span>`:""}</div>
+    ${body}`;
+  bindMurderEvents();
+  if($("#mRecBtn")) $("#mRecBtn").onclick=murderRecommendModal;
   if($("#addMurder")) $("#addMurder").onclick=()=>gameModal(null,{murder:true});
-  if($("#mViewToggle")) $("#mViewToggle").onclick=()=>{ setCollView(collView==="list"?"grid":"list"); renderMurder(); };
+  if($("#mViewToggle")) $("#mViewToggle").onclick=()=>{ setMurderView(murderView==="grid"?"list":murderView==="list"?"table":"grid"); renderMurder(); };
   if($("#mStatusSel")) $("#mStatusSel").onchange=e=>{ murderFilter.status=e.target.value; renderMurderGridOnly(); };
   if($("#mPlaySel")) $("#mPlaySel").onchange=e=>{ murderFilter.players=e.target.value; renderMurderGridOnly(); };
   const si=$("#murderSearch");
   if(si){ let comp=false; si.addEventListener("compositionstart",()=>comp=true); si.addEventListener("compositionend",()=>{comp=false; murderQ=si.value; renderMurderGridOnly();});
     si.addEventListener("input",()=>{ if(!comp){ murderQ=si.value; renderMurderGridOnly(); } }); }
 }
+function bindMurderEvents(){
+  document.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>gameDetail(b.dataset.detail));
+  document.querySelectorAll("[data-exp]").forEach(inp=>inp.onchange=async()=>{
+    const g=state.games.find(x=>x.id===inp.dataset.exp); if(!g) return;
+    g.experienced=(inp.value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    await persist(true); toast("경험자 저장됨");
+  });
+}
 function renderMurderGridOnly(){
-  const grid=$("#grid"); if(!grid || activeTab!=="murder") return;
+  const view=$("#view"); if(!view || activeTab!=="murder") return;
   const list=murderList();
-  const render = collView==="list"? murderRow : murderCard;
-  grid.className="grid2 "+(collView==="list"?"as-list":"");
   const filtered=(murderFilter.status!=="all"||murderFilter.players!=="all"||murderQ);
-  grid.innerHTML = list.length? list.map(render).join("") : `<div class="empty"><div class="big">${filtered?"조건에 맞는 게임이 없어요":"머더/추리 게임이 없어요"}</div></div>`;
-  grid.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>gameDetail(b.dataset.detail));
-  const sum=$(".murder-sum"); // 요약도 갱신
+  if(murderView==="table"){
+    const holder=view.querySelector(".mtable"); 
+    if(holder){ holder.outerHTML=murderTableHtml(list); }
+    bindMurderEvents();
+  } else {
+    const grid=$("#grid"); if(!grid) return;
+    grid.className="grid2 "+(murderView==="list"?"as-list":"");
+    grid.innerHTML = list.length? list.map(murderView==="list"?murderRow:murderCard).join("") : `<div class="empty"><div class="big">${filtered?"조건에 맞는 게임이 없어요":"머더/추리 게임이 없어요"}</div></div>`;
+    bindMurderEvents();
+  }
+  const sum=$(".murder-sum");
   if(sum){ const all=state.games.filter(g=>g.murder); const total=all.length, done=all.filter(g=>playCountFor(g.name)>0).length;
-    sum.innerHTML=`전체 <b>${total}</b> · 플레이함 <b>${done}</b> · 미플 <b>${total-done}</b>${filtered?` · <span style="color:var(--muted)">필터 적용 중</span>`:""}`; }
+    sum.innerHTML=`전체 <b>${total}</b> · 플레이함 <b>${done}</b> · 노플 <b>${total-done}</b>${filtered?` · <span style="color:var(--muted)">필터 적용 중</span>`:""}`; }
+}
+// 추천: 인원 + 사람 명단 + 최대 난이도 → 그 사람들이 모두 아직 안 해본 게임
+function murderRecommendModal(){
+  openModal(`
+    <div class="mhead"><h3>🎲 머더/추리 추천</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="hint" style="margin-bottom:12px">함께할 사람들을 적으면, 그 사람들이 <b>모두 아직 안 해본</b> 게임 중에서 인원·난이도에 맞는 걸 추천해요.</div>
+      <div class="field"><label>함께할 사람 (쉼표로 구분)</label><input id="mr_people" lang="ko" placeholder="예) 김장훈, 민수, 영희"></div>
+      <div class="two">
+        <div class="field"><label>인원 수 (선택)</label><input id="mr_count" type="number" placeholder="예) 3"></div>
+        <div class="field"><label>최대 난이도 (0~5, 선택)</label><input id="mr_weight" type="number" step="0.1" min="0" max="5" placeholder="예) 3"></div>
+      </div>
+      <button class="btn save" id="mr_go" style="width:100%">추천 받기</button>
+      <div id="mr_result" style="margin-top:14px"></div>
+    </div>`);
+  const run=()=>{
+    const people=($("#mr_people").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    const cnt=$("#mr_count").value?parseInt($("#mr_count").value):null;
+    const maxW=$("#mr_weight").value?parseFloat($("#mr_weight").value):null;
+    let cands=state.games.filter(g=>g.murder && gstatus(g)==="owned");
+    // 적어준 사람 전원이 아직 안 해본 게임
+    if(people.length) cands=cands.filter(g=>{ const exp=expOf(g); return people.every(p=>!exp.includes(p)); });
+    if(cnt) cands=cands.filter(g=>matchesPlayers(g,cnt));
+    if(maxW!=null) cands=cands.filter(g=>g.weight==null || g.weight<=maxW+0.001);
+    cands.sort((a,b)=>(a.weight??99)-(b.weight??99));
+    const res=$("#mr_result");
+    if(!cands.length){ res.innerHTML=`<div class="dempty">조건에 맞는(모두 안 해본) 게임이 없어요. 인원·난이도 조건을 넓혀 보세요.</div>`; return; }
+    res.innerHTML=`<div class="hint" style="margin-bottom:8px">추천 ${cands.length}개 (쉬운 순)</div>`+
+      cands.slice(0,12).map(g=>`<button class="rec-item" data-detail="${g.id}">
+        <span class="ri-name">${esc(g.name)}</span>
+        <span class="ri-meta">👥 ${esc(playableStr(g))} · 🎯 ${g.weight!=null?Number(g.weight).toFixed(1):"-"} · ⏱ ${esc(g.playtime||"-")}</span>
+      </button>`).join("");
+    res.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>gameDetail(b.dataset.detail));
+  };
+  $("#mr_go").onclick=run;
 }
 function renderCollection(){
   const shareMode = COLL_ONLY;
@@ -1229,17 +1319,17 @@ function gameDetail(id){
     : `<div class="dempty">아직 BGG 정보가 없어요. 아래 ‘BGG 정보 가져오기’를 눌러 불러오세요.</div>`;
   const isM=!!g.murder;
   const _mcRec = isM ? state.plays.find(p=>p.murderCheck && (p.name||"")===g.name) : null;
-  const _mcNames = _mcRec ? (_mcRec.reviews||[]).map(r=>revName(r)) : [];
   const _today = (()=>{ const d=new Date(); return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0"); })();
+  const _expList = isM ? (Array.isArray(g.experienced)?g.experienced:[]) : [];
   const murderCheckSection = isM ? `
-    <section class="dsec"><h4>플레이 체크 <small style="font-weight:400;color:var(--muted)">간단 기록</small></h4>
-      <label class="coop-toggle" style="margin-bottom:2px"><input type="checkbox" id="mc_done" ${_mcRec?"checked":""}> ✔ 플레이 완료</label>
-      <div id="mc_body" style="${_mcRec?"":"display:none"};margin-top:10px">
-        <div class="field"><label>플레이 날짜</label><input id="mc_date" value="${esc(_mcRec?_mcRec.date:_today)}" placeholder="2026.06.28"></div>
-        <div class="field"><label>함께한 사람 <small style="color:var(--muted)">(쉼표로 구분)</small></label><input id="mc_people" lang="ko" value="${esc(_mcNames.join(", "))}" placeholder="예) 김장훈, 김나영, 민수"></div>
-      </div>
-      <button class="btn save" id="mc_save" style="width:100%;margin-top:10px">플레이 체크 저장</button>
+    <section class="dsec"><h4>플레이 체크</h4>
+      <label class="coop-toggle"><input type="checkbox" id="mc_done" ${_mcRec?"checked":""}> ✔ 내가(우리가) 플레이함</label>
       <div class="hint" style="margin-top:6px">점수·한줄평까지 남기려면 아래 ‘＋ 플레이 기록’을 쓰세요.</div>
+    </section>
+    <section class="dsec"><h4>플레이해본 사람 <small style="font-weight:400;color:var(--muted)">경험자 명단</small></h4>
+      <div class="field"><input id="mc_exp" lang="ko" value="${esc(_expList.join(", "))}" placeholder="이 게임을 해본 사람 (쉼표로 구분) 예) 김장훈, 민수, 영희"></div>
+      <button class="btn save" id="mc_exp_save" style="width:100%">경험자 저장</button>
+      <div class="hint" style="margin-top:6px">스포일러가 있는 1회용 게임이라, 아직 안 해본 사람에게 시켜줄 수 있게 관리해요.</div>
     </section>` : "";
   const murderRows=`
     <div class="drow"><span>가능 인원</span><b>${esc(playableStr(g))}</b></div>
@@ -1295,24 +1385,16 @@ function gameDetail(id){
       <button class="btn cancel" id="d_del">삭제</button>
     </div>`);
   $("#d_sleeve_save").onclick=async()=>{ g.sleeve=$("#d_sleeve").value; await persist(); toast("슬리브 저장됨"); };
-  if($("#mc_done")) $("#mc_done").onchange=e=>{ $("#mc_body").style.display=e.target.checked?"block":"none"; };
-  if($("#mc_save")) $("#mc_save").onclick=async()=>{
-    const done=$("#mc_done").checked;
+  if($("#mc_done")) $("#mc_done").onchange=async e=>{
     let rec=state.plays.find(p=>p.murderCheck && (p.name||"")===g.name);
-    if(!done){
-      if(rec) state.plays=state.plays.filter(p=>p!==rec);
-      await persist(); toast("플레이 안 함으로 표시"); renderStats(); gameDetail(g.id); return;
-    }
-    const date=normDate($("#mc_date").value.trim());
-    const names=($("#mc_people").value||"").split(",").map(s=>s.trim()).filter(Boolean);
-    const reviews=names.map(nm=>{
-      let nk=state.nicks.find(n=>n.name===nm);
-      if(!nk){ nk={code:nm.slice(0,2).toUpperCase(), name:nm, color:NICK_PALETTE[state.nicks.length%NICK_PALETTE.length]}; state.nicks.push(nk); }
-      return {name:nm, code:nk.code, color:nk.color, score:null, text:"", winner:false};
-    });
-    if(rec){ rec.date=date; rec.players=String(names.length||2); rec.reviews=reviews; }
-    else { state.plays.push({id:"mc"+Date.now().toString(36), name:g.name, date, players:String(names.length||2), winner:"", count:"머더/추리", reviews, murderCheck:true}); }
-    await persist(); toast("플레이 체크 저장됨"); renderStats(); gameDetail(g.id);
+    if(e.target.checked){
+      if(!rec) state.plays.push({id:"mc"+Date.now().toString(36), name:g.name, date:_today, players:"", winner:"", count:"머더/추리", reviews:[], murderCheck:true});
+    } else if(rec){ state.plays=state.plays.filter(p=>p!==rec); }
+    await persist(); toast(e.target.checked?"플레이함으로 표시":"노플로 표시"); renderStats();
+  };
+  if($("#mc_exp_save")) $("#mc_exp_save").onclick=async()=>{
+    g.experienced=($("#mc_exp").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    await persist(); toast("경험자 저장됨");
   };
   $("#d_memo_save").onclick=async()=>{ g.memo=$("#d_memo").value; await persist(); toast("메모 저장됨"); };
   $("#d_play").onclick=()=>{ const nm=g.name; closeModal(); playModal(null, nm); };
@@ -2231,7 +2313,7 @@ function renderStatsTab(){
         <div class="scard wide">
           <h3>1회당 비용 <small>낮을수록 본전 (가격 ÷ 플레이 수)</small></h3>
           ${cpp.length?barChart(cpp,{color:"var(--felt)",fmt:v=>"₩"+v.toLocaleString()}):`<div class="dempty">가격·플레이 기록이 있는 게임이 아직 없어요.</div>`}
-          ${neverPlayed?`<div class="subnote" style="margin-top:8px">아직 한 번도 안 한 보유 게임: <b>${neverPlayed}개</b> (미플 게임)</div>`:""}
+          ${neverPlayed?`<div class="subnote" style="margin-top:8px">아직 한 번도 안 한 보유 게임: <b>${neverPlayed}개</b> (노플 게임)</div>`:""}
         </div>
       </div>`;
   } else {
