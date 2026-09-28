@@ -242,6 +242,7 @@ select{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);
 
 /* 통계 카드 헤더 인라인 셀렉트 */
 .scard-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.head-sels{display:flex;gap:6px;flex-wrap:wrap}
 .scard-head h3{margin:0}
 .inline-sel{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:9px;padding:6px 9px;background:var(--paper);color:var(--ink);outline:none}
 
@@ -2275,6 +2276,7 @@ let statsSub="play"; // 'play' | 'purchase'  (플레이 통계가 왼쪽 기본)
 let statsRatePerson="all"; // 평점 통계: 'all' 또는 참여자 이름
 let statsGroup="all"; // 플레이 통계 그룹 필터: 'all' 또는 그룹 id
 let statsBuyYear="all"; // 구매 통계: 'all'이면 연도별, 특정 연도면 그 해 월별
+let statsBuyKind="all"; // 구매 통계 종류 필터: 'all' | 'normal'(보드게임) | 'murder'
 function renderStatsTab(){
   const pad=n=>String(n).padStart(2,"0");
   const now=new Date();
@@ -2306,18 +2308,24 @@ function renderStatsTab(){
   let panel="";
   if(statsSub==="purchase"){
     const won=v=>"₩"+Math.round(v).toLocaleString();
-    // ① 종류별 구매 금액 (일반 보드게임 vs 머더/추리)
-    const normalGames=state.games.filter(g=>!g.murder);
-    const murderGames=state.games.filter(g=>g.murder);
-    const normalSpend=normalGames.reduce((a,g)=>a+(g.price||0),0);
-    const murderSpend=murderGames.reduce((a,g)=>a+(g.price||0),0);
-    const kindRows=[
-      {label:"일반 보드게임", value:Math.round(normalSpend/10000), sub:`${normalGames.length}개`},
-      {label:"머더/추리", value:Math.round(murderSpend/10000), sub:`${murderGames.length}개`}
-    ];
-    // ② 연도별 구매 (금액/수량) — 연도 선택 시 그 해 월별
+    // ① 종류 필터(전체/보드게임/머더) — 구매 금액·수량에 공통 적용
+    const kindFn = statsBuyKind==="normal"? (g=>!g.murder) : statsBuyKind==="murder"? (g=>g.murder) : (g=>true);
+    const kindGames=state.games.filter(kindFn);
+    const kindSel=`<select id="buyKindSel" class="inline-sel">
+        <option value="all" ${statsBuyKind==="all"?"selected":""}>전체</option>
+        <option value="normal" ${statsBuyKind==="normal"?"selected":""}>보드게임</option>
+        <option value="murder" ${statsBuyKind==="murder"?"selected":""}>머더/추리</option>
+      </select>`;
+    // 전체일 때 보드게임/머더 비율 (금액·수량)
+    const nSpend=state.games.filter(g=>!g.murder).reduce((a,g)=>a+(g.price||0),0);
+    const mSpend=state.games.filter(g=>g.murder).reduce((a,g)=>a+(g.price||0),0);
+    const nCnt=state.games.filter(g=>!g.murder).length, mCnt=state.games.filter(g=>g.murder).length;
+    const pct=(a,b)=> (a+b)>0? Math.round(a/(a+b)*100):0;
+    const amtPctNote = `보드게임 ${won(nSpend)} (${pct(nSpend,mSpend)}%) · 머더/추리 ${won(mSpend)} (${pct(mSpend,nSpend)}%)`;
+    const cntPctNote = `보드게임 ${nCnt}개 (${pct(nCnt,mCnt)}%) · 머더/추리 ${mCnt}개 (${pct(mCnt,nCnt)}%)`;
+    // ② 연도별 구매 (금액/수량) — 연도 선택 시 그 해 월별, 종류 필터 반영
     const byYear={};
-    state.games.forEach(g=>{ const k=dateKey(g.date); const y=k.slice(0,4); if(y==="0000") return; (byYear[y]=byYear[y]||{amt:0,cnt:0}); byYear[y].amt+=(g.price||0); byYear[y].cnt++; });
+    kindGames.forEach(g=>{ const k=dateKey(g.date); const y=k.slice(0,4); if(y==="0000") return; (byYear[y]=byYear[y]||{amt:0,cnt:0}); byYear[y].amt+=(g.price||0); byYear[y].cnt++; });
     const years=Object.keys(byYear).sort();
     const yearSel=`<select id="buyYearSel" class="inline-sel">
         <option value="all" ${statsBuyYear==="all"?"selected":""}>연도별 전체</option>
@@ -2328,7 +2336,7 @@ function renderStatsTab(){
       // 선택 연도의 월별
       const byMonth={};
       for(let m=1;m<=12;m++) byMonth[pad(m)]={amt:0,cnt:0};
-      state.games.forEach(g=>{ const k=dateKey(g.date); if(k.slice(0,4)!==statsBuyYear) return; const mm=k.slice(5,7); if(mm==="00") return; byMonth[mm].amt+=(g.price||0); byMonth[mm].cnt++; });
+      kindGames.forEach(g=>{ const k=dateKey(g.date); if(k.slice(0,4)!==statsBuyYear) return; const mm=k.slice(5,7); if(mm==="00") return; byMonth[mm].amt+=(g.price||0); byMonth[mm].cnt++; });
       const months=Object.keys(byMonth).filter(m=>byMonth[m].cnt>0);
       buyAmtRows=months.map(m=>({label:`${parseInt(m,10)}월`, value:Math.round(byMonth[m].amt/10000), sub:`${byMonth[m].cnt}개`}));
       buyCntRows=months.map(m=>({label:`${parseInt(m,10)}월`, value:byMonth[m].cnt}));
@@ -2338,6 +2346,7 @@ function renderStatsTab(){
       buyCntRows=years.map(y=>({label:y, value:byYear[y].cnt}));
       buyLabel="연도별";
     }
+    const kindLabel = statsBuyKind==="normal"?"보드게임":statsBuyKind==="murder"?"머더/추리":"전체";
     // ③ 판매 금액 (연도별) — 방출 게임의 판매금액을 구매일 연도 기준으로 집계
     const soldGames=state.games.filter(g=>gstatus(g)==="gone");
     const soldWithPrice=soldGames.filter(g=>g.salePrice!=null && g.salePrice!=="");
@@ -2370,17 +2379,14 @@ function renderStatsTab(){
           <div class="subnote">회수율 <b>${recoveryPct}%</b>${soldBuyTotal>0?` · 손실 ₩${(soldBuyTotal-totalSold).toLocaleString()}`:""} · 방출 ${soldGames.length}개 중 입력 ${soldWithPrice.length}개${soldWithPrice.length<soldGames.length?` (나머지는 게임 수정에서 판매 금액 입력)`:""}</div>
         </div>
         <div class="scard wide">
-          <h3>종류별 구매 금액 <small>(만원)</small></h3>
-          ${(normalSpend+murderSpend)>0?barChart(kindRows,{color:"var(--jh)",fmt:v=>v+"만"}):`<div class="dempty">가격 정보가 있는 게임이 없어요.</div>`}
-          <div class="subnote" style="margin-top:8px">일반 ${won(normalSpend)} · 머더/추리 ${won(murderSpend)}</div>
-        </div>
-        <div class="scard">
-          <div class="scard-head"><h3>구매 금액 <small>(만원)</small></h3>${yearSel}</div>
+          <div class="scard-head"><h3>구매 금액 <small>${kindLabel} · ${buyLabel} (만원)</small></h3><div class="head-sels">${kindSel}${yearSel}</div></div>
           ${buyAmtRows.length?barChart(buyAmtRows,{color:"var(--gold)",fmt:v=>v+"만"}):`<div class="dempty">${statsBuyYear==="all"?"구매일 정보가 있는 게임이 없어요.":"이 연도에 구매 기록이 없어요."}</div>`}
+          ${statsBuyKind==="all"?`<div class="subnote" style="margin-top:8px">${amtPctNote}</div>`:""}
         </div>
-        <div class="scard">
-          <h3>구매 수량 <small>${buyLabel}</small></h3>
+        <div class="scard wide">
+          <h3>구매 수량 <small>${kindLabel} · ${buyLabel}</small></h3>
           ${buyCntRows.length?barChart(buyCntRows,{color:"var(--owned)"}):`<div class="dempty">데이터가 없어요.</div>`}
+          ${statsBuyKind==="all"?`<div class="subnote" style="margin-top:8px">${cntPctNote}</div>`:""}
         </div>
         <div class="scard wide">
           <h3>연도별 판매 금액 <small>(만원 · 방출 게임)</small></h3>
@@ -2454,6 +2460,7 @@ function renderStatsTab(){
   if($("#ratePersonSel")) $("#ratePersonSel").onchange=e=>{ statsRatePerson=e.target.value; renderStatsTab(); };
   if($("#statsGroupSel")) $("#statsGroupSel").onchange=e=>{ statsGroup=e.target.value; renderStatsTab(); };
   if($("#buyYearSel")) $("#buyYearSel").onchange=e=>{ statsBuyYear=e.target.value; renderStatsTab(); };
+  if($("#buyKindSel")) $("#buyKindSel").onchange=e=>{ statsBuyKind=e.target.value; renderStatsTab(); };
 }
 
 /* ---------- BoardGameGeek integration ---------- */
