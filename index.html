@@ -124,6 +124,16 @@ body.plays-only .tabacts{display:none}
 .murder-check input{width:18px;height:18px;accent-color:var(--felt)}
 /* 머더 경험자 미니 배지 */
 .mexp-mini{font-size:11px;color:var(--muted);padding:0 10px 8px}
+/* 판매 목록 모달 */
+.sold-sec{margin-bottom:16px}
+.sold-yhead{font-family:"Jua";font-size:15px;color:var(--ink);margin:0 0 6px}
+.sold-yhead small{font-family:inherit;font-weight:400;font-size:12px;color:var(--muted);margin-left:6px}
+.sold-table{width:100%;border-collapse:collapse;font-size:13px}
+.sold-table th,.sold-table td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+.sold-table th{color:var(--muted);font-weight:600;font-size:12px}
+.sold-table td.num,.sold-table th.num{text-align:right;white-space:nowrap}
+.sold-table tbody tr{cursor:pointer}
+.sold-table tbody tr:hover{background:var(--chip,rgba(0,0,0,.04))}
 /* 머더 표 보기 */
 .mtable{display:flex;flex-direction:column;gap:6px}
 .mtrow{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
@@ -944,15 +954,15 @@ function matchesPlayers(g, n){
   if(n==="all") return true;
   const min=g.pmin, max=g.pmax;
   if(min==null||max==null) return false;
-  if(n==="5") return max>=5;
+  if(n==="5plus") return max>=5; // 보유/추천 화면의 '5인+' 옵션
   const k=parseInt(n,10);
-  return min<=k && k<=max;
+  return min<=k && k<=max; // 그 외(1~9)는 정확히 그 인원으로 플레이 가능한지
 }
 function matchesBest(g, n){
   if(n==="all") return true;
   const arr=g.best||[];
   if(!arr.length) return false;
-  if(n==="5") return arr.some(x=>x>=5);
+  if(n==="5"||n==="5plus") return arr.some(x=>x>=5);
   return arr.includes(parseInt(n,10));
 }
 // 게임 상태: owned(보유) / funding(펀딩중·미도착) / gone(방출)
@@ -1116,7 +1126,7 @@ function murderCard(g){
   const flag = st==="funding"?'<span class="fund-flag">펀딩중</span>' : st==="gone"?'<span class="gone-flag">방출</span>' : "";
   return `<button class="gcard2 ${st}" data-detail="${g.id}" title="${esc(g.name)}">
     <div class="cover">${cover?`<img loading="lazy" decoding="async" src="${esc(cover)}" alt="">`:`<div class="cover-ph">🕵️<span>표지 없음</span></div>`}
-      <span class="${played?"play-flag done":"play-flag"}">${played?"✔ 플레이함":"미플"}</span></div>
+      <span class="${played?"play-flag done":"play-flag"}">${played?"✔ 플레이함":"노플"}</span></div>
     ${flag}
     <div class="gname2">${esc(g.name)}</div>
     <div class="mexp-mini">${exp.length?("해본 사람 "+exp.length+"명"):"경험자 없음"}</div>
@@ -1126,7 +1136,7 @@ function murderRow(g){
   const played=murderDone(g), st=gstatus(g), exp=expOf(g);
   const sflag = st==="funding"?'<span class="rowbadge fund">펀딩</span>' : st==="gone"?'<span class="rowbadge gone">방출</span>' : "";
   return `<button class="grow ${st}" data-detail="${g.id}">
-    <span class="grow-name">${esc(g.name)}<span class="rowbadge ${played?"done":"todo"}">${played?"✔ 플레이함":"미플"}</span>${sflag}</span>
+    <span class="grow-name">${esc(g.name)}<span class="rowbadge ${played?"done":"todo"}">${played?"✔ 플레이함":"노플"}</span>${sflag}</span>
     <span class="grow-stats">
       <span class="gs" title="가능 인원">👥 ${esc(playableStr(g))}</span>
       <span class="gs" title="난이도">🎯 ${g.weight!=null?Number(g.weight).toFixed(1):"-"}</span>
@@ -1177,12 +1187,12 @@ function renderMurder(){
       </select>
       <select id="mPlaySel" title="플레이 가능 인원">
         <option value="all" ${murderFilter.players==="all"?"selected":""}>인원 전체</option>
-        ${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${murderFilter.players==String(n)?"selected":""}>${n}인 가능</option>`).join("")}
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<option value="${n}" ${murderFilter.players==String(n)?"selected":""}>${n}인 가능</option>`).join("")}
       </select>
       <button class="viewtoggle" id="mViewToggle" title="보기 전환 (카드/리스트/표)">${viewLabel}</button>
       ${MURDER_ONLY?"":`<button class="actbtn" id="mRecBtn">🎲 추천</button><button class="actbtn" id="mShareBtn">🔗 목록 공유</button><button class="add" id="addMurder">＋ 머더/추리 추가</button>`}
     </div>
-    <div class="murder-sum">전체 <b>${total}</b> · 플레이함 <b>${done}</b> · 미플 <b>${total-done}</b>${filtered?` · <span style="color:var(--muted)">필터 적용 중</span>`:""}${murderView==="table"?` · <span style="color:var(--muted)">표에서 이름을 편집하면 자동 저장돼요</span>`:""}</div>
+    <div class="murder-sum">전체 <b>${total}</b> · 플레이함 <b>${done}</b> · 노플 <b>${total-done}</b>${filtered?` · <span style="color:var(--muted)">필터 적용 중</span>`:""}${murderView==="table"?` · <span style="color:var(--muted)">표에서 이름을 편집하면 자동 저장돼요</span>`:""}</div>
     ${body}`;
   bindMurderEvents();
   if($("#mRecBtn")) $("#mRecBtn").onclick=murderRecommendModal;
@@ -1219,7 +1229,7 @@ function renderMurderGridOnly(){
   }
   const sum=$(".murder-sum");
   if(sum){ const all=state.games.filter(g=>g.murder); const total=all.length, done=all.filter(g=>murderDone(g)).length;
-    sum.innerHTML=`전체 <b>${total}</b> · 플레이함 <b>${done}</b> · 미플 <b>${total-done}</b>${filtered?` · <span style="color:var(--muted)">필터 적용 중</span>`:""}`; }
+    sum.innerHTML=`전체 <b>${total}</b> · 플레이함 <b>${done}</b> · 노플 <b>${total-done}</b>${filtered?` · <span style="color:var(--muted)">필터 적용 중</span>`:""}`; }
 }
 // 추천: 인원 + 사람 명단 + 최대 난이도 → 그 사람들이 모두 아직 안 해본 게임
 function murderRecommendModal(){
@@ -1287,7 +1297,7 @@ function renderCollection(){
         <option value="2" ${filter.players==="2"?"selected":""}>2인 가능</option>
         <option value="3" ${filter.players==="3"?"selected":""}>3인 가능</option>
         <option value="4" ${filter.players==="4"?"selected":""}>4인 가능</option>
-        <option value="5" ${filter.players==="5"?"selected":""}>5인+ 가능</option>
+        <option value="5plus" ${filter.players==="5plus"?"selected":""}>5인+ 가능</option>
       </select>
       <select id="bestSel" title="BEST 인원">
         <option value="all" ${filter.best==="all"?"selected":""}>BEST 전체</option>
@@ -1300,6 +1310,8 @@ function renderCollection(){
       <button class="viewtoggle" id="viewToggle" title="보기 전환">${collView==="list"?"🔲 카드":"☰ 리스트"}</button>
       ${shareMode?"":`<button class="actbtn" id="shareColl">🔗 목록 공유</button>`}
     </div>
+    ${(()=>{ const _owned=state.games.filter(g=>!g.murder && gstatus(g)==="owned").length;
+      return `<div class="murder-sum">보유 게임 <b>${_owned}</b>개</div>`; })()}
     <div class="grid2 ${collView==="list"?"as-list":""}" id="grid"></div>`;
 
   const si=$("#searchInput");
@@ -1417,7 +1429,7 @@ function gameDetail(id){
   $("#d_sleeve_save").onclick=async()=>{ g.sleeve=$("#d_sleeve").value; await persist(); toast("슬리브 저장됨"); };
   if($("#mc_done")) $("#mc_done").onchange=async e=>{
     g.played = e.target.checked;
-    await persist(); toast(e.target.checked?"플레이함으로 표시":"미플로 표시"); renderStats();
+    await persist(); toast(e.target.checked?"플레이함으로 표시":"노플로 표시"); renderStats();
   };
   if($("#mc_exp_save")) $("#mc_exp_save").onclick=async()=>{
     g.experienced=($("#mc_exp").value||"").split(",").map(s=>s.trim()).filter(Boolean);
@@ -1447,7 +1459,7 @@ function recommendModal(){
           <select id="rec_players">
             <option value="any">상관없음</option>
             <option value="1">1인</option><option value="2">2인</option>
-            <option value="3">3인</option><option value="4">4인</option><option value="5">5인+</option>
+            <option value="3">3인</option><option value="4">4인</option><option value="5plus">5인+</option>
           </select></div>
         <div class="field"><label>가능 시간(분)</label><input id="rec_time" type="number" min="1" placeholder="예) 45"></div>
       </div>
@@ -1821,6 +1833,35 @@ function openModal(html){ const o=$("#overlay"); o.innerHTML=`<div class="modal"
   o.onclick=e=>{ if(e.target===o) closeModal(); };
   o.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeModal); }
 function closeModal(){ $("#overlay").classList.remove("on"); $("#overlay").innerHTML=""; }
+// 판매한 게임 목록 모달 — 방출 + 판매금액 입력된 게임을 구매일 연도별로 묶어 보여줌
+function soldListModal(){
+  const sold=state.games.filter(g=>gstatus(g)==="gone" && g.salePrice!=null && g.salePrice!=="");
+  if(!sold.length){ toast("판매 금액이 입력된 방출 게임이 없어요"); return; }
+  const won=v=>"₩"+Math.round(v||0).toLocaleString();
+  const byY={};
+  sold.forEach(g=>{ const y=dateKey(g.date).slice(0,4); const key=(y==="0000")?"연도미상":y; (byY[key]=byY[key]||[]).push(g); });
+  const years=Object.keys(byY).sort().reverse();
+  const tSold=sold.reduce((a,g)=>a+(g.salePrice||0),0);
+  const tBuy=sold.reduce((a,g)=>a+(g.price||0),0);
+  const tRec=tBuy>0?Math.round(tSold/tBuy*100):0;
+  const sections=years.map(y=>{
+    const arr=byY[y].slice().sort((a,b)=>(b.salePrice||0)-(a.salePrice||0));
+    const ys=arr.reduce((a,g)=>a+(g.salePrice||0),0);
+    const yb=arr.reduce((a,g)=>a+(g.price||0),0);
+    const rows=arr.map(g=>{ const rec=(g.price>0)?Math.round((g.salePrice||0)/g.price*100):null;
+      return `<tr data-sold="${g.id}"><td>${esc(g.name)}</td><td class="num">${won(g.price)}</td><td class="num">${won(g.salePrice)}</td><td class="num">${rec!=null?rec+"%":"-"}</td></tr>`; }).join("");
+    return `<div class="sold-sec"><div class="sold-yhead">${y==="연도미상"?y:y+"년"} <small>${arr.length}개 · 판매 ${won(ys)} / 구매 ${won(yb)}</small></div>
+      <table class="sold-table"><thead><tr><th>게임</th><th class="num">구매가</th><th class="num">판매가</th><th class="num">회수율</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }).join("");
+  openModal(`
+    <div class="mhead"><h3>📋 판매한 게임 목록</h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="subnote" style="margin-bottom:12px">방출 게임 중 ‘판매 금액’이 입력된 <b>${sold.length}개</b> · 합계 판매 <b>${won(tSold)}</b> / 구매 <b>${won(tBuy)}</b> · 회수율 <b>${tRec}%</b><br><span style="color:var(--muted)">※ 판매일 항목이 없어 <b>구매일 연도</b> 기준으로 묶었어요. 게임 이름을 누르면 상세가 열려요.</span></div>
+      ${sections}
+      <div class="mfoot" style="margin-top:14px"><button class="btn cancel" data-close>닫기</button></div>
+    </div>`);
+  document.querySelectorAll("[data-sold]").forEach(tr=>tr.onclick=()=>{ closeModal(); gameDetail(tr.dataset.sold); });
+}
 
 function gameModal(id, opts){
   opts=opts||{};
@@ -2316,13 +2357,15 @@ function renderStatsTab(){
         <option value="normal" ${statsBuyKind==="normal"?"selected":""}>보드게임</option>
         <option value="murder" ${statsBuyKind==="murder"?"selected":""}>머더/추리</option>
       </select>`;
-    // 전체일 때 보드게임/머더 비율 (금액·수량)
-    const nSpend=state.games.filter(g=>!g.murder).reduce((a,g)=>a+(g.price||0),0);
-    const mSpend=state.games.filter(g=>g.murder).reduce((a,g)=>a+(g.price||0),0);
-    const nCnt=state.games.filter(g=>!g.murder).length, mCnt=state.games.filter(g=>g.murder).length;
+    // 전체일 때 보드게임/머더 비율 (금액·수량) — 선택한 연도(statsBuyYear)에 맞춰 집계
+    const inBuyYear = g => statsBuyYear==="all" ? true : dateKey(g.date).slice(0,4)===statsBuyYear;
+    const nSpend=state.games.filter(g=>!g.murder && inBuyYear(g)).reduce((a,g)=>a+(g.price||0),0);
+    const mSpend=state.games.filter(g=>g.murder && inBuyYear(g)).reduce((a,g)=>a+(g.price||0),0);
+    const nCnt=state.games.filter(g=>!g.murder && inBuyYear(g)).length, mCnt=state.games.filter(g=>g.murder && inBuyYear(g)).length;
     const pct=(a,b)=> (a+b)>0? Math.round(a/(a+b)*100):0;
-    const amtPctNote = `보드게임 ${won(nSpend)} (${pct(nSpend,mSpend)}%) · 머더/추리 ${won(mSpend)} (${pct(mSpend,nSpend)}%)`;
-    const cntPctNote = `보드게임 ${nCnt}개 (${pct(nCnt,mCnt)}%) · 머더/추리 ${mCnt}개 (${pct(mCnt,nCnt)}%)`;
+    const pctScope = statsBuyYear==="all" ? "전체 기간" : `${statsBuyYear}년`;
+    const amtPctNote = `<b>${pctScope}</b> · 보드게임 ${won(nSpend)} (${pct(nSpend,mSpend)}%) · 머더/추리 ${won(mSpend)} (${pct(mSpend,nSpend)}%)`;
+    const cntPctNote = `<b>${pctScope}</b> · 보드게임 ${nCnt}개 (${pct(nCnt,mCnt)}%) · 머더/추리 ${mCnt}개 (${pct(mCnt,nCnt)}%)`;
     // ② 연도별 구매 (금액/수량) — 연도 선택 시 그 해 월별, 종류 필터 반영
     const byYear={};
     kindGames.forEach(g=>{ const k=dateKey(g.date); const y=k.slice(0,4); if(y==="0000") return; (byYear[y]=byYear[y]||{amt:0,cnt:0}); byYear[y].amt+=(g.price||0); byYear[y].cnt++; });
@@ -2389,8 +2432,9 @@ function renderStatsTab(){
           ${statsBuyKind==="all"?`<div class="subnote" style="margin-top:8px">${cntPctNote}</div>`:""}
         </div>
         <div class="scard wide">
-          <h3>연도별 판매 금액 <small>(만원 · 방출 게임)</small></h3>
+          <div class="scard-head"><h3>연도별 판매 금액 <small>(만원 · 방출 게임)</small></h3>${soldWithPrice.length?`<button class="actbtn" id="soldListBtn">📋 판매 목록</button>`:""}</div>
           ${soldYearRows.length?barChart(soldYearRows,{color:"var(--gone)",fmt:v=>v+"만"}):`<div class="dempty">판매 금액이 입력된 방출 게임이 없어요. 방출 게임 수정에서 ‘판매 금액’을 입력하세요.</div>`}
+          ${soldWithPrice.length?`<div class="subnote" style="margin-top:8px">‘📋 판매 목록’을 누르면 판매한 게임을 연도별로 자세히 볼 수 있어요.</div>`:""}
         </div>
       </div>`;
   } else {
@@ -2461,6 +2505,7 @@ function renderStatsTab(){
   if($("#statsGroupSel")) $("#statsGroupSel").onchange=e=>{ statsGroup=e.target.value; renderStatsTab(); };
   if($("#buyYearSel")) $("#buyYearSel").onchange=e=>{ statsBuyYear=e.target.value; renderStatsTab(); };
   if($("#buyKindSel")) $("#buyKindSel").onchange=e=>{ statsBuyKind=e.target.value; renderStatsTab(); };
+  if($("#soldListBtn")) $("#soldListBtn").onclick=soldListModal;
 }
 
 /* ---------- BoardGameGeek integration ---------- */
